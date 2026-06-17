@@ -1,0 +1,42 @@
+---
+description: Organization of all the frontend components
+globs: 
+alwaysApply: false
+---
+# Component Organization Guide
+
+## Component Structure
+Components are organized in the `src/components` directory following these conventions:
+
+1. Component Categories:
+   - `ui/`: Contains only shadcn-related components and their variations
+   - `common/`: Application-wide common components like:
+     - Logo
+     - Navbar
+     - Footer
+     - Common layouts
+     - Shared UI elements
+   - Feature-specific folders: Components specific to a feature (e.g., `property/`, `auth/`, etc.)
+
+2. File Naming Convention:
+   - Use kebab-case for file names (e.g., `property-card.tsx`, `user-profile.tsx`)
+   - This applies to all component files, including feature-specific components
+
+## Component Guidelines
+1. Use TypeScript for all components
+2. Implement proper prop types and interfaces
+3. Follow the atomic design pattern where applicable
+4. Use Tailwind CSS for styling
+5. Keep components focused and single-responsibility
+6. Document complex components with JSDoc comments
+
+## Component References
+- UI components (shadcn): [src/components/ui](mdc:src/components/ui)
+- Common components: [src/components/common](mdc:src/components/common)
+- Feature-specific components: [src/components/property](mdc:src/components/property) (example)
+
+## Examples
+- Property-related components should be in `src/components/property/`
+- Authentication components should be in `src/components/auth/`
+- Dashboard components should be in `src/components/dashboard/`
+- Each feature folder should follow the same internal structure as individual components

@@ -1,0 +1,35 @@
+---
+description: Directory Structure of the project
+globs: 
+alwaysApply: false
+---
+# Project Structure Guide
+
+This is a Next.js project with TypeScript and Tailwind CSS. Here's the main structure:
+
+## Source Code (`src/`)
+- `app/`: Next.js app router pages and layouts
+- `components/`: Reusable React components
+- `actions/`: Server actions for data mutations
+- `controller/`: Server action handlers and business logic
+- `hooks/`: Custom React hooks
+- `hooks/queries`: `useQuery` hooks from react-query to fetch data
+- `lib/`: Core utilities and shared functions
+- `schema/`: Zod schemas and their types used in forms and server actions
+- `types/`: TypeScript type definitions
+- `utils/`: Helper functions and utilities
+- `constants/`: Application constants and configuration
+- `middleware.ts`: Next.js middleware for route protection
+
+## Configuration Files
+- `next.config.ts`: Next.js configuration
+- `tailwind.config.ts`: Tailwind CSS configuration
+- `tsconfig.json`: TypeScript configuration
+- `package.json`: Project dependencies and scripts
+- `components.json`: UI components configuration
+
+## Public Assets
+- `public/`: Static assets like images and fonts
+
+## Documentation
+- `docs/`: Project documentation and guides

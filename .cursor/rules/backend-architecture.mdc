@@ -1,0 +1,42 @@
+---
+description: Backend organization
+globs: 
+alwaysApply: false
+---
+# Backend Architecture Guide
+
+## Server-Side Structure
+The backend is organized in the following directories:
+
+### API Routes (`src/app/api/`)
+- REST API endpoints following Next.js API route conventions
+- Each route should be in its own directory with `route.ts` file
+
+### Server Actions (`src/actions/`)
+- Server-side mutations and data operations
+- Each action should be in its own file with clear naming
+- Actions should be type-safe and handle errors appropriately
+
+### Controllers (`src/controller/`)
+- Business logic and request handling
+- Separate controllers for different domains
+- Implement proper error handling and validation
+
+### Schemas (`src/schema/`)
+- Database schemas and types
+- API request/response validation schemas
+- Type definitions for data models
+
+## Best Practices
+1. Use TypeScript for all server-side code
+2. Implement proper error handling
+3. Validate all inputs using schemas
+4. Keep business logic in controllers
+5. Use server actions for mutations
+6. Follow REST principles for API design
+
+## Key Files
+- Middleware configuration: [src/middleware.ts](mdc:src/middleware.ts)
+- Environment configuration: [src/env.ts](mdc:src/env.ts)
+- API route handlers: [src/app/api](mdc:src/app/api)
+- Server actions: [src/actions](mdc:src/actions)

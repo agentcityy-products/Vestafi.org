@@ -1,0 +1,45 @@
+---
+description: Config files
+globs: 
+alwaysApply: false
+---
+# Configuration Guide
+
+## Project Configuration Files
+
+### Next.js Configuration
+- File: [next.config.ts](mdc:next.config.ts)
+- Purpose: Configures Next.js build settings, environment variables, and plugins
+- Key settings: API routes, image optimization, redirects
+
+### TypeScript Configuration
+- File: [tsconfig.json](mdc:tsconfig.json)
+- Purpose: TypeScript compiler options and project settings
+- Key settings: Path aliases, strict mode, module resolution
+
+### Tailwind Configuration
+- File: [tailwind.config.ts](mdc:tailwind.config.ts)
+- Purpose: Tailwind CSS customization and theme settings
+- Key settings: Colors, spacing, breakpoints, plugins
+
+### ESLint Configuration
+- File: [eslint.config.mjs](mdc:eslint.config.mjs)
+- Purpose: Code style and quality rules
+- Key settings: TypeScript rules, React rules, import rules
+
+### Prettier Configuration
+- File: [.prettierrc.js](mdc:.prettierrc.js)
+- Purpose: Code formatting rules
+- Key settings: Line length, quotes, semicolons
+
+### Environment Configuration
+- File: [src/env.ts](mdc:src/env.ts)
+- Purpose: Environment variable validation and types
+- Key settings: Required variables, type definitions
+
+## Best Practices
+1. Keep configuration files in the root directory
+2. Use TypeScript for configuration files when possible
+3. Document any non-standard configurations
+4. Keep sensitive information in environment variables
+5. Use consistent formatting across all config files

@@ -1,0 +1,5 @@
+- do you have a preferred color theme for the site, I am using this right now (attachment)
+- do you have a logo, I have created a very simple one (attachment)
+- will there be any more fields in bank info?
+- is bank number a numeric field or iban
+- should the bank name be a dropdown? If yes do you have a list of banks?
