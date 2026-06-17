@@ -16,12 +16,12 @@ export const env = createEnv({
       .string()
       .email()
       .optional()
-      .default('hakizalive@gmail.com'),
+      .default('admin@vestafi.org'),
     NEXT_PUBLIC_APP_URL: z
       .string()
       .url()
       .optional()
-      .default('https://www.vestafi.co'),
+      .default('https://www.codex.vestafi.org'),
   },
   runtimeEnv: {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
