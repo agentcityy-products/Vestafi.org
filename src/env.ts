@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export const env = createEnv({
   server: {
+    CRON_SECRET: z.string().min(32),
     RESEND_API_KEY: z.string(),
     SUPABASE_SERVICE_KEY: z.string(),
   },
@@ -24,6 +25,7 @@ export const env = createEnv({
       .default('https://www.codex.vestafi.org'),
   },
   runtimeEnv: {
+    CRON_SECRET: process.env.CRON_SECRET,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

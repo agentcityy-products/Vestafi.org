@@ -20,16 +20,17 @@ This project is a Next.js application deployed to Vercel with Supabase and Resen
 
 Configure these in Vercel for the staging environment:
 
-| Variable | Scope | Notes |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Client/server | `https://hyzmrvccsekfmvaenisa.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client/server | Supabase anon public key |
-| `SUPABASE_SERVICE_KEY` | Server only | Supabase service role key; never expose to browser |
-| `RESEND_API_KEY` | Server only | Resend API key for transactional email |
-| `NEXT_PUBLIC_ADMIN_EMAIL` | Client/server | Admin email used by app config |
-| `NEXT_PUBLIC_APP_URL` | Client/server | `https://www.codex.vestafi.org` |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Client/server | Optional |
-| `NEXT_PUBLIC_POSTHOG_HOST` | Client/server | Optional |
+| Variable                        | Scope         | Notes                                                                |
+| ------------------------------- | ------------- | -------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Client/server | `https://hyzmrvccsekfmvaenisa.supabase.co`                           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client/server | Supabase anon public key                                             |
+| `SUPABASE_SERVICE_KEY`          | Server only   | Supabase service role key; never expose to browser                   |
+| `RESEND_API_KEY`                | Server only   | Resend API key for transactional email                               |
+| `CRON_SECRET`                   | Server only   | Random value (32+ characters) used to authorize scheduled email jobs |
+| `NEXT_PUBLIC_ADMIN_EMAIL`       | Client/server | Admin email used by app config                                       |
+| `NEXT_PUBLIC_APP_URL`           | Client/server | `https://www.codex.vestafi.org`                                      |
+| `NEXT_PUBLIC_POSTHOG_KEY`       | Client/server | Optional                                                             |
+| `NEXT_PUBLIC_POSTHOG_HOST`      | Client/server | Optional                                                             |
 
 ## DNS
 

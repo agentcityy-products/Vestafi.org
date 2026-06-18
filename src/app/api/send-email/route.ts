@@ -1,13 +1,30 @@
 import { subHours } from 'date-fns';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'node:crypto';
 
 import { resend } from '@/lib/resend';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 import { appConfig } from '@/config/app';
 import { MeetingInviteEmail } from '@/emails/meeting-invite-email';
+import { env } from '@/env';
 
-export const GET = async () => {
+const isAuthorized = (request: NextRequest) => {
+  const authorization = request.headers.get('authorization');
+  const expected = `Bearer ${env.CRON_SECRET}`;
+
+  if (!authorization || authorization.length !== expected.length) {
+    return false;
+  }
+
+  return timingSafeEqual(Buffer.from(authorization), Buffer.from(expected));
+};
+
+export const GET = async (request: NextRequest) => {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const supabase = await createSupabaseAdminClient();
 
