@@ -107,7 +107,11 @@ const publicRoutes = [
   paths.about,
 ] as string[];
 
-const guestRoutes = [paths.auth.login, paths.auth.apply] as string[];
+const guestRoutes = [
+  paths.auth.login,
+  paths.auth.callback,
+  paths.auth.apply,
+] as string[];
 
 const adminRoutes = [
   paths.admin.root,

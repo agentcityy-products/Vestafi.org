@@ -4,6 +4,7 @@ export const paths = {
   home: '/',
   auth: {
     login: '/auth/login',
+    callback: '/auth/callback',
     apply: '/apply',
   },
   onboarding: '/onboarding',

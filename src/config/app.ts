@@ -11,7 +11,7 @@ export const appConfig = {
   defaultLocale: 'en-UG',
   defaultCurrency: 'UGX',
   defaultCountryCode: 'UG',
-  appUrl: 'https://www.vestafi.co',
+  appUrl: env.NEXT_PUBLIC_APP_URL,
   emails: {
     support: 'hq@vestafi.co',
     sender: 'hq@vestafi.co',
