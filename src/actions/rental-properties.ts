@@ -282,6 +282,14 @@ export const uploadRentalPropertyImages = authActionClient
 export const hasApprovedInvestment = async (
   userId: string,
 ): Promise<boolean> => {
+  const caller = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await caller.auth.getUser();
+  if (!user || user.id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const supabase = await createSupabaseAdminClient();
 
   const { data, error } = await supabase

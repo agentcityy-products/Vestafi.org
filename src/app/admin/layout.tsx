@@ -12,7 +12,14 @@ export default async function AdminLayout({
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
   const userEmail = data.user?.email || '';
-  const isAdmin = data.user?.user_metadata.role === 'admin';
+  const { data: userRole } = data.user
+    ? await supabase
+        .from('user_role')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle()
+    : { data: null };
+  const isAdmin = userRole?.role === 'admin';
 
   return (
     <div className='flex min-h-screen'>

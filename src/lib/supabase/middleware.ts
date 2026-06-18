@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
   REDIRECT RULES:
   1. If user is not authenticated and the path is not /auth/login, redirect to /auth/login
   2. If user is authenticated and the path is /auth/login, redirect to /dashboard
-  3. If user is authenticated and user_metadata.onboarded is false, redirect to /onboarding
+  3. If user is authenticated and has no profile, redirect to /onboarding
   4. If user is admin and the path does not start with /admin, redirect to /admin/properties
   5. If user is not admin and the path starts with /admin, redirect to /dashboard
   */
@@ -61,8 +61,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   // User is authenticated from here
-  const isOnboarded = user.user_metadata.onboarded;
-  const isAdmin = user.user_metadata.role === 'admin';
+  const [{ data: profile }, { data: userRole }] = await Promise.all([
+    supabase.from('profile').select('id').eq('id', user.id).maybeSingle(),
+    supabase.from('user_role').select('role').eq('id', user.id).maybeSingle(),
+  ]);
+  const isOnboarded = !!profile;
+  const isAdmin = userRole?.role === 'admin';
 
   // Rule 2: Not onboarded users are allowed on guestRoutes and onboarding page only
   if (!isOnboarded) {

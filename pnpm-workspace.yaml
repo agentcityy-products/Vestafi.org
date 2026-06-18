@@ -1,8 +1,15 @@
 overrides:
   '@types/react': 19.1.4
   '@types/react-dom': 19.1.5
+  'glob@>=10.2.0 <10.5.0': 10.5.0
+  'picomatch@<2.3.2': 2.3.2
 
 allowBuilds:
   core-js: true
   sharp: true
   unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@posthog/core@1.35.1'
+  - '@posthog/types@1.390.0'
+  - posthog-js@1.390.2

@@ -11,10 +11,6 @@ import {
   type ApplicationFormValues,
 } from '@/schema/applications';
 import {
-  saveBehaviorTrust,
-  saveFinancialIdentity,
-  saveGoalsMindset,
-  savePersonalInfo,
   submitApplication,
 } from '@/actions/applications';
 
@@ -47,7 +43,6 @@ export const ApplicationForm = ({
   initialReferralCode,
 }: ApplicationFormProps) => {
   const [currentStep, setCurrentStep] = useState<FormStep>('intro');
-  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
   const [submittedCategory, setSubmittedCategory] = useState<
     number | undefined
   >();
@@ -70,34 +65,6 @@ export const ApplicationForm = ({
       joining_as: '',
       referral_source: '',
       referred_by: initialReferralCode || '',
-    },
-  });
-
-  // Save progress actions for each section
-  const { execute: savePersonalInfoAction } = useAction(savePersonalInfo, {
-    onError: (error) => {
-      console.error('Failed to save personal info:', error);
-    },
-  });
-
-  const { execute: saveFinancialIdentityAction } = useAction(
-    saveFinancialIdentity,
-    {
-      onError: (error) => {
-        console.error('Failed to save financial identity:', error);
-      },
-    },
-  );
-
-  const { execute: saveGoalsMindsetAction } = useAction(saveGoalsMindset, {
-    onError: (error) => {
-      console.error('Failed to save goals & mindset:', error);
-    },
-  });
-
-  const { execute: saveBehaviorTrustAction } = useAction(saveBehaviorTrust, {
-    onError: (error) => {
-      console.error('Failed to save behavior & trust:', error);
     },
   });
 
@@ -171,48 +138,10 @@ export const ApplicationForm = ({
     },
   );
 
-  // Auto-save progress when moving to next step
   const handleSectionComplete = (
     nextStep: FormStep,
-    sectionData: Partial<ApplicationFormValues>,
+    _sectionData: Partial<ApplicationFormValues>,
   ) => {
-    const formData = form.getValues();
-    const email = formData.email;
-
-    if (!email) {
-      setCurrentStep(nextStep);
-      return;
-    }
-
-    // Save the specific section data in background
-    switch (currentStep) {
-      case 'personal-info':
-        savePersonalInfoAction({
-          email,
-          full_name: sectionData.full_name!,
-          phone: sectionData.phone!,
-          phone_country_code: sectionData.phone_country_code!,
-          country: sectionData.country!,
-          age_range: sectionData.age_range!,
-        });
-        break;
-      case 'financial-identity':
-        saveFinancialIdentityAction({
-          email,
-          monthly_income: sectionData.monthly_income!,
-          contribution_capacity: sectionData.contribution_capacity!,
-          contribution_frequency: sectionData.contribution_frequency!,
-        });
-        break;
-      case 'goals-mindset':
-        saveGoalsMindsetAction({
-          email,
-          goals: sectionData.goals!,
-          investment_timeline: sectionData.investment_timeline!,
-        });
-        break;
-    }
-
     setCurrentStep(nextStep);
   };
 
@@ -281,15 +210,6 @@ export const ApplicationForm = ({
           !!currentValues.joining_as &&
           !!currentValues.referral_source;
         if (isValid) {
-          // Save behavior & trust before submitting
-          if (currentValues.email) {
-            saveBehaviorTrustAction({
-              email: currentValues.email,
-              webinar_willing: currentValues.webinar_willing!,
-              joining_as: currentValues.joining_as,
-              referral_source: currentValues.referral_source,
-            });
-          }
           // Submit the application
           form.handleSubmit((data) => {
             submit(data);
@@ -308,23 +228,11 @@ export const ApplicationForm = ({
   };
 
   const handleReject = () => {
-    // Save the financial identity data first (including the rejection trigger)
     const formData = form.getValues();
 
     if (formData.email) {
       // Use the actual contribution_capacity from form (should be 'below-1m' for Category 1)
       const contributionCapacity = formData.contribution_capacity || 'below-1m';
-
-      // Save financial identity with the actual selection (fire and forget)
-      const financialData = {
-        email: formData.email,
-        monthly_income: formData.monthly_income || '',
-        contribution_capacity: contributionCapacity,
-        contribution_frequency:
-          formData.contribution_frequency || 'monthly-consistency',
-      };
-
-      saveFinancialIdentityAction(financialData);
 
       // Create a minimal submission that will trigger rejection
       // Use defaults for missing required fields to pass validation
