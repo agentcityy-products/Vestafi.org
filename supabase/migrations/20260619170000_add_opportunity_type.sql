@@ -48,7 +48,6 @@ select
   p.country,
   p.zip_code,
   p.allow_first_time_investors,
-  p.opportunity_type,
   p.created_at,
   coalesce(inv.total_investment, 0::numeric) as total_investment,
   case
@@ -56,7 +55,8 @@ select
       then (coalesce(inv.total_investment, 0::numeric) / p.price) * 100::numeric
     else 0::numeric
   end as investment_percentage,
-  rent.average_rent_6_months
+  rent.average_rent_6_months,
+  p.opportunity_type
 from public.property p
 left join (
   select
