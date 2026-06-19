@@ -792,6 +792,7 @@ export type Database = {
           maximum_monthly_rent: number | null
           minimum_monthly_rent: number | null
           ownership_proof: string[] | null
+          opportunity_type: string
           price: number
           price_usd: number | null
           property_type: Database["public"]["Enums"]["property_type_enum"]
@@ -816,6 +817,7 @@ export type Database = {
           maximum_monthly_rent?: number | null
           minimum_monthly_rent?: number | null
           ownership_proof?: string[] | null
+          opportunity_type?: string
           price: number
           price_usd?: number | null
           property_type?: Database["public"]["Enums"]["property_type_enum"]
@@ -840,6 +842,7 @@ export type Database = {
           maximum_monthly_rent?: number | null
           minimum_monthly_rent?: number | null
           ownership_proof?: string[] | null
+          opportunity_type?: string
           price?: number
           price_usd?: number | null
           property_type?: Database["public"]["Enums"]["property_type_enum"]
@@ -1293,6 +1296,7 @@ export type Database = {
           id: string | null
           images: string[] | null
           investment_percentage: number | null
+          opportunity_type: string | null
           maximum_monthly_rent: number | null
           minimum_monthly_rent: number | null
           price: number | null

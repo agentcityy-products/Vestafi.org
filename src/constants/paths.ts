@@ -25,6 +25,10 @@ export const paths = {
     vault: '/dashboard/vault',
     referrals: '/dashboard/referrals',
     innerAccess: '/dashboard/inner-access',
+    distributions: '/dashboard/distributions',
+    watchlist: '/dashboard/watchlist',
+    messages: '/dashboard/messages',
+    briefings: '/dashboard/briefings',
     exitWindow: {
       root: '/dashboard/exit-window',
       sell: '/dashboard/exit-window/sell',

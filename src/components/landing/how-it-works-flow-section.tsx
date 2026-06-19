@@ -2,11 +2,10 @@
 
 import {
   Building2,
-  CheckCircle2,
-  DollarSign,
+  CircleDollarSign,
   Key,
+  ShieldCheck,
   UserCheck,
-  Wallet,
 } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,45 +13,38 @@ import { Card, CardContent } from '@/components/ui/card';
 const steps = [
   {
     icon: UserCheck,
-    title: 'You apply to join the circle',
+    title: 'Apply To Join',
     description:
       'Vestafi begins with an application, not a payment. This allows us to understand who is joining, align expectations early, and keep the circle intentional rather than open-ended.',
-    color: 'from-emerald-500 to-green-500',
+    color: 'from-emerald-700 to-emerald-600',
   },
   {
     icon: Key,
-    title: 'If accepted, you receive private access',
+    title: 'Access Openings',
     description:
       'Once approved, you gain access to a private member area where all activity happens. This is where apartments are listed, contributions are made, and performance is tracked.',
-    color: 'from-green-500 to-teal-500',
+    color: 'from-emerald-700 to-teal-600',
   },
   {
     icon: Building2,
-    title: 'You view available apartments',
+    title: 'Secure Ownership',
     description:
-      'Inside the platform, you see specific apartments that are open for contribution. Each apartment is presented individually, with its own context, contribution status, and operational details.',
-    color: 'from-teal-500 to-cyan-500',
+      'Choose the apartment and ownership position that fits you. Each opening is tied to a specific apartment with clear context and operational details.',
+    color: 'from-teal-700 to-teal-600',
   },
   {
-    icon: CheckCircle2,
-    title: 'You contribute to apartments you personally choose',
+    icon: CircleDollarSign,
+    title: 'Receive Distributions',
     description:
-      'You decide which apartment to contribute to and how much to allocate. Contributions are tied to specific apartments rather than pooled blindly, so you always know what you are participating in.',
-    color: 'from-cyan-500 to-blue-500',
+      'When an apartment is operational and earning rental income, members receive distributions based on real performance.',
+    color: 'from-teal-700 to-cyan-700',
   },
   {
-    icon: DollarSign,
-    title: 'Rental income is shared based on real performance',
+    icon: ShieldCheck,
+    title: 'Vestafi Manages',
     description:
-      'When an apartment is operational and generating rental income, distributions are made based on actual rental performance, not projections or promises.',
-    color: 'from-blue-500 to-indigo-500',
-  },
-  {
-    icon: Wallet,
-    title: 'Capital access follows clearly defined windows',
-    description:
-      'Capital is not locked indefinitely, but it is also not treated like a daily withdrawal account. Access to capital follows predefined windows that are communicated upfront to maintain stability and fairness across members.',
-    color: 'from-indigo-500 to-emerald-500',
+      'Vestafi coordinates the apartment, reporting, and member experience so ownership remains structured, understandable, and professionally guided.',
+    color: 'from-cyan-800 to-emerald-800',
   },
 ];
 
@@ -63,16 +55,14 @@ export const HowItWorksFlowSection = () => {
         <div className='mx-auto max-w-4xl'>
           <div className='mb-16 text-center'>
             <h2 className='mb-6 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl'>
-              How Vestafi works
+              How Vestafi Works
             </h2>
             <p className='mx-auto mb-4 max-w-3xl text-lg text-slate-700'>
-              Vestafi is a serious elite inner circle. Nothing is automated
-              blindly, nothing is rushed, and nothing happens without you
-              clearly understanding where your money is going and how it is
-              being used.
+              Entry into a private apartment ownership system—clear, measured,
+              and guided from application through distributions.
             </p>
             <p className='mx-auto max-w-2xl text-base text-slate-600'>
-              Here is the full flow, end to end.
+              Five deliberate steps. No marketplace noise.
             </p>
           </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Type, Users } from 'lucide-react';
+import { FileText, Sparkles, Type, Users } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 
 import type { PropertyFormValues } from '@/schema/property';
@@ -15,6 +15,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -83,7 +90,39 @@ export function BasicInfoForm({
 
       {showFirstTimeInvestors && (
         <div className='space-y-4'>
-          <h3 className='text-lg font-medium'>Contribution Settings</h3>
+          <h3 className='text-lg font-medium'>Ownership Presentation</h3>
+          <FormField
+            control={form.control}
+            name={'opportunity_type' as keyof PropertyFormValues}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opportunity Category</FormLabel>
+                <Select
+                  value={(field.value as string | undefined) ?? 'fractional'}
+                  onValueChange={field.onChange}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <div className='flex items-center gap-2'>
+                        <Sparkles className='h-4 w-4 text-muted-foreground' />
+                        <SelectValue placeholder='Choose a category' />
+                      </div>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value='prime'>Prime</SelectItem>
+                    <SelectItem value='live'>Live</SelectItem>
+                    <SelectItem value='fractional'>Fractional</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Controls the card language, emphasis, and ownership journey
+                  members see in Current Ownership Openings.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name={'allow_first_time_investors' as keyof PropertyFormValues}
@@ -93,13 +132,12 @@ export function BasicInfoForm({
                   <div className='flex items-center gap-2'>
                     <Users className='h-4 w-4 text-muted-foreground' />
                     <FormLabel className='text-base font-medium'>
-                      Allow First-Time Investors
+                      Open To First-Time Members
                     </FormLabel>
                   </div>
                   <FormDescription className='text-sm text-muted-foreground'>
-                    Enable this to allow investors who haven't invested before
-                    to invest in this property. When disabled, only investors
-                    with prior Contribution experience can invest.
+                    Allow members without previous Vestafi ownership to access
+                    this opening. When disabled, prior ownership is required.
                   </FormDescription>
                 </div>
                 <FormControl>

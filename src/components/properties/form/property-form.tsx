@@ -68,8 +68,18 @@ export function PropertyForm({ property, id }: PropertyFormProps) {
           country: property.country,
           images: property.images,
           allow_first_time_investors: property.allow_first_time_investors,
+          opportunity_type:
+            property.opportunity_type === 'prime' ||
+            property.opportunity_type === 'live' ||
+            property.opportunity_type === 'fractional'
+              ? property.opportunity_type
+              : 'fractional',
         }
-      : undefined,
+      : {
+          opportunity_type: 'fractional',
+          allow_first_time_investors: false,
+          images: [],
+        },
   });
 
   async function onSubmit(values: PropertyFormValues) {

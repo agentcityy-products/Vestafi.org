@@ -119,23 +119,23 @@ export function DashboardCards({
 
   const cards = [
     {
-      title: 'Properties Invested',
+      title: 'Apartments Owned',
       value: ownedProperties?.length ?? 0,
-      description: 'Total properties you have invested in',
+      description: 'Apartments in your ownership portfolio',
       icon: <Building2 className='h-10 w-10' />,
       isLoading: isOwnedPropertiesLoading,
     },
     {
-      title: 'Total Invested',
+      title: 'Ownership Value',
       value: formatCurrency(totalInvested),
-      description: 'Total amount invested in all properties',
+      description: 'Your total active ownership position',
       icon: <DollarSign className='h-10 w-10' />,
       isLoading: isOwnedPropertiesLoading,
     },
     {
-      title: 'Rental Income Balance',
+      title: 'Distribution Balance',
       value: formatCurrency(rentalIncomeBalance ?? 0),
-      description: 'Total balance earned from rent (minus withdrawals)',
+      description: 'Available apartment distributions',
       icon: <TrendingUp className='h-10 w-10' />,
       isLoading: isRentalIncomeBalanceLoading,
     },
@@ -147,9 +147,9 @@ export function DashboardCards({
       isLoading: isApprovedRentalPropertiesLoading,
     },
     {
-      title: 'Rental Income Withdrawn',
+      title: 'Distributions Received',
       value: formatCurrency(approvedWithdrawalsTotal ?? 0),
-      description: 'Total amount withdrawn from rental income',
+      description: 'Total distributions moved from your account',
       icon: <Wallet className='h-10 w-10' />,
       isLoading: isApprovedWithdrawalsLoading,
     },
