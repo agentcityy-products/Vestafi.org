@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const opportunityTypes = ['prime', 'live', 'fractional'] as const;
+export type OpportunityType = (typeof opportunityTypes)[number];
+
 export const propertyFormSchema = z
   .object({
     id: z.string().optional(),
@@ -38,6 +41,7 @@ export const propertyFormSchema = z
       message: 'At least one image is required.',
     }),
     allow_first_time_investors: z.boolean().optional(),
+    opportunity_type: z.enum(opportunityTypes),
   })
   .refine(
     (data) => {

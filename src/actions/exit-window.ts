@@ -10,10 +10,6 @@ import {
   listExitOrdersSchema,
 } from '@/schema/exit-window';
 import { checkMembershipAccess } from '@/actions/membership';
-import {
-  getOrCreateUserVault,
-  getOrCreateUserVaultAdmin,
-} from '@/actions/vault';
 
 import type { ExitWindowStakeRow } from '@/components/dashboard/exit-window/exit-window-stake-types';
 
@@ -28,6 +24,10 @@ import {
   getSellableAmount,
 } from '@/lib/exit-window';
 import { authActionClient } from '@/lib/server/safe-action';
+import {
+  getOrCreateUserVault,
+  getOrCreateUserVaultAdmin,
+} from '@/lib/server/vault';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
@@ -213,16 +213,27 @@ export const buyFromExitOrder = authActionClient
 
     const tradeId = crypto.randomUUID();
 
-    const { error: orderUpdateError } = await adminSupabase
+    const nextAmountRemaining = order.amount_remaining - amount;
+    const nextOrderStatus =
+      nextAmountRemaining <= 0 ? 'filled' : 'partially_filled';
+    const { data: claimedOrder, error: orderUpdateError } = await adminSupabase
       .from('exit_window_orders')
       .update({
-        amount_remaining: order.amount_remaining - amount,
-        status:
-          order.amount_remaining - amount <= 0 ? 'filled' : 'partially_filled',
+        amount_remaining: nextAmountRemaining,
+        status: nextOrderStatus,
       })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .eq('amount_remaining', order.amount_remaining)
+      .eq('status', order.status)
+      .select('id')
+      .maybeSingle();
 
-    if (orderUpdateError) throw new Error(orderUpdateError.message);
+    if (orderUpdateError || !claimedOrder) {
+      throw new Error(
+        orderUpdateError?.message ||
+          'Order changed while you were buying. Please retry.',
+      );
+    }
 
     const { error: tradeError } = await adminSupabase
       .from('exit_window_trades')
@@ -325,18 +336,44 @@ export const buyFromExitOrder = authActionClient
         .eq('id', orderId);
       throw new Error('Failed to debit vault');
     }
-    const { error: buyerVaultUpdateError } = await adminSupabase
+    const { data: debitedVault, error: buyerVaultUpdateError } =
+      await adminSupabase
       .from('user_vault')
       .update({
         balance: buyerVault.balance - buyerPayment,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', authUser.user.id);
-    if (buyerVaultUpdateError) {
+      .eq('user_id', authUser.user.id)
+      .eq('balance', buyerVault.balance)
+      .gte('balance', buyerPayment)
+      .select('user_id')
+      .maybeSingle();
+    if (buyerVaultUpdateError || !debitedVault) {
       Logger.error('Failed to debit buyer vault', {
         error: buyerVaultUpdateError,
       });
-      throw new Error(buyerVaultUpdateError.message);
+      await adminSupabase
+        .from('vault_transactions')
+        .delete()
+        .eq('id', buyerTxId);
+      await adminSupabase
+        .from('property_ownership_movements')
+        .delete()
+        .eq('ref_id', tradeId);
+      await adminSupabase.from('exit_window_trades').delete().eq('id', tradeId);
+      await adminSupabase
+        .from('exit_window_orders')
+        .update({
+          amount_remaining: order.amount_remaining,
+          status: order.status,
+        })
+        .eq('id', orderId)
+        .eq('amount_remaining', nextAmountRemaining)
+        .eq('status', nextOrderStatus);
+      throw new Error(
+        buyerVaultUpdateError?.message ||
+          'Vault balance changed while processing. Please retry.',
+      );
     }
 
     const sellerVault = await getOrCreateUserVaultAdmin(order.seller_user_id);

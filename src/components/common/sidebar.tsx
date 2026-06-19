@@ -1,10 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import {
   Award,
   BarChart3,
   Building,
+  CalendarDays,
   ChevronDown,
   Crown,
   DollarSign,
@@ -12,11 +12,13 @@ import {
   FileText,
   HelpCircle,
   Home,
+  Inbox,
   Key,
   LayoutDashboard,
   LogOut,
   Menu,
   Search,
+  Star,
   TrendingUp,
   User,
   Users,
@@ -27,8 +29,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
 import { useProfile } from '@/hooks/queries/profile';
-
-import { getActiveExitWindowAction } from '@/actions/exit-window';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +48,6 @@ import { cn } from '@/lib/utils';
 import { getFullName } from '@/utils/string-functions';
 
 import { paths } from '@/constants/paths';
-import { QueryKeys } from '@/constants/query-keys';
 
 import { InnerAccessModal } from './inner-access-modal';
 import Logo from './logo';
@@ -195,19 +194,6 @@ type SidebarProps = {
 const Sidebar = ({ userEmail, isAdmin }: SidebarProps) => {
   const [innerAccessModalOpen, setInnerAccessModalOpen] = useState(false);
 
-  const { data: activeExitWindow, isLoading: exitWindowStatusLoading } =
-    useQuery({
-      queryKey: [QueryKeys.EXIT_WINDOWS, 'active'],
-      queryFn: async () => {
-        const r = await getActiveExitWindowAction();
-        if (!r) throw new Error('No response');
-        if (r.serverError) throw new Error(r.serverError);
-        return r.data?.window ?? null;
-      },
-      refetchOnWindowFocus: false,
-      staleTime: 60_000,
-    });
-
   const userLinks: SidebarLink[] = [
     // Always show "Upload Rental Property" button
     // {
@@ -222,60 +208,47 @@ const Sidebar = ({ userEmail, isAdmin }: SidebarProps) => {
     //       },
     // },
     {
-      label: 'Explore Properties',
+      label: 'Inside Opportunities',
       href: paths.listings.list,
       icon: Search,
     },
     {
-      label: 'Savings Overview',
+      label: 'My Ownership',
       href: paths.dashboard.savingsOverview,
       icon: BarChart3,
     },
     {
-      label: 'My Contributions',
+      label: 'Monthly Distributions',
+      href: paths.dashboard.distributions,
+      icon: CalendarDays,
+    },
+    {
+      label: 'Ownership Activity',
       href: paths.dashboard.contributions,
       icon: Building,
-    },
-    // {
-    //   label: 'Monthly Rentals',
-    //   href: paths.dashboard.monthlyReturns,
-    //   icon: TrendingUp,
-    // },
-    {
-      label: 'Exit Window',
-      href: paths.dashboard.exitWindow.root,
-      icon: DoorOpen,
-      badge:
-        !exitWindowStatusLoading && !activeExitWindow ? (
-          <Badge
-            variant='secondary'
-            className='shrink-0 px-1.5 py-0 text-[10px] font-normal'
-          >
-            Closed
-          </Badge>
-        ) : undefined,
       subLinks: [
-        { label: 'Sell', href: paths.dashboard.exitWindow.sell },
-        { label: 'Buy', href: paths.dashboard.exitWindow.buy },
+        { label: 'Activity', href: paths.dashboard.contributions },
+        { label: 'Ownership Vault', href: paths.dashboard.vault },
+        { label: 'Transfer Ownership', href: paths.dashboard.exitWindow.root },
       ],
     },
     {
-      label: 'My Vault',
-      href: paths.dashboard.vault,
-      icon: Wallet,
+      label: 'My Watchlist',
+      href: paths.dashboard.watchlist,
+      icon: Star,
     },
     {
-      label: 'Inner Access',
-      href: paths.dashboard.innerAccess,
-      icon: Users,
+      label: 'Messages',
+      href: paths.dashboard.messages,
+      icon: Inbox,
     },
-    // {
-    //   label: 'Withdrawals',
-    //   href: paths.dashboard.withdrawals,
-    //   icon: DollarSign,
-    // },
     {
-      label: 'Help & Support',
+      label: 'Society Briefings',
+      href: paths.dashboard.briefings,
+      icon: FileText,
+    },
+    {
+      label: 'Support',
       href: '#',
       icon: HelpCircle,
       onClick: () => setOpenSupport(true),
@@ -316,6 +289,11 @@ const Sidebar = ({ userEmail, isAdmin }: SidebarProps) => {
 
       {/* Navigation */}
       <nav className='flex-1 px-4 py-6'>
+        {!isAdmin && (
+          <p className='mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/70'>
+            Vestafi Inner Society
+          </p>
+        )}
         <ul className='space-y-1'>
           {links.map((link) => (
             <li key={link.href}>

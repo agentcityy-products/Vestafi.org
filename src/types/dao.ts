@@ -9,6 +9,7 @@ export type ApplicationStatus =
 export type InvestmentStatus =
   Database['public']['Enums']['investment_status_enum'];
 export type RankType = Database['public']['Enums']['rank_types'];
+export type OpportunityType = 'prime' | 'live' | 'fractional';
 
 // * Row types
 export type PropertyRow = Database['public']['Tables']['property']['Row'];

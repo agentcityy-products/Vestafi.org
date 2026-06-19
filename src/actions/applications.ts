@@ -6,7 +6,6 @@ import {
   applicationFormSchema,
   determineCategory,
 } from '@/schema/applications';
-import { createReferralRecord } from '@/actions/referrals';
 
 import { resend } from '@/lib/resend';
 import {
@@ -26,164 +25,52 @@ import ApplicantRejectionEmail from '@/emails/applicant-rejection-email';
 import ApplicantSubmitEmail from '@/emails/applicant-submit-email';
 
 // import { Database } from '@/types/supabase';
-import { ApplicationInsert, ApplicationUpdate } from '@/types/dao';
+import { ApplicationInsert, ReferralInsert } from '@/types/dao';
 
-// Helper function to upsert application data
-// Uses admin client to bypass RLS for public form submissions
-async function upsertApplicationData(
-  email: string,
-  data: Partial<z.infer<typeof applicationFormSchema>>,
-) {
+async function createReferralRecord(
+  applicationId: string,
+  applicationEmail: string,
+  referredByCode: string,
+  category: number,
+): Promise<void> {
+  if (category < 2) return;
+
   const supabase = await createSupabaseAdminClient();
-
-  // Check if application exists
-  const { data: existing } = await supabase
+  const { data: application } = await supabase
     .from('applications')
-    .select('id')
-    .eq('email', email)
+    .select('id, email')
+    .eq('id', applicationId)
+    .eq('email', applicationEmail)
     .single();
 
-  // Build update data - use country directly (full country name)
-  const updateData: ApplicationUpdate = {
-    ...data,
-    country: data.country || 'Uganda', // Use full country name, default to Uganda
-    savings: data.savings || '', // Required field in DB
-    why_vestafi: data.why_vestafi || [], // Required field in DB
-    updated_at: new Date().toISOString(),
+  if (!application) return;
+
+  const { data: referrer } = await supabase
+    .from('profile')
+    .select('id, email')
+    .eq('referral_code', referredByCode)
+    .maybeSingle();
+
+  if (
+    !referrer ||
+    referrer.email.toLowerCase() === applicationEmail.toLowerCase()
+  ) {
+    return;
+  }
+
+  const referralData: ReferralInsert = {
+    referrer_id: referrer.id,
+    application_id: application.id,
+    referee_id: null,
+    referral_code: referredByCode.toLowerCase(),
+    status: 'pending',
   };
 
-  if (existing) {
-    // Update existing application
-    const { error } = await supabase
-      .from('applications')
-      .update(updateData)
-      .eq('id', existing.id);
-
-    if (error) throw new Error(error.message);
-
-    return existing.id;
-  } else {
-    // Create new application
-    if (!data.full_name) {
-      throw new Error('Full name is required');
-    }
-
-    const insertData: ApplicationInsert = {
-      email,
-      full_name: data.full_name,
-      phone: data.phone || '',
-      phone_country_code: data.phone_country_code || 'UG',
-      country: data.country || 'Uganda', // Use full country name
-      savings: data.savings || '',
-      why_vestafi: data.why_vestafi || [],
-      ...updateData,
-    };
-
-    // Remove location if it exists (we only use country now)
-    if ('location' in insertData) {
-      delete insertData.location;
-    }
-
-    const { data: newApp, error } = await supabase
-      .from('applications')
-      .insert(insertData)
-      .select('id')
-      .single();
-
-    if (error) throw new Error(error.message);
-
-    return newApp.id;
+  const { error } = await supabase.from('referrals').insert(referralData);
+  if (error && error.code !== '23505') {
+    console.error('Failed to create referral record:', error);
   }
 }
-
-// Save Section 1: Personal Information
-export const savePersonalInfo = safeActionClient
-  .schema(
-    z.object({
-      email: z.string().email(),
-      full_name: z.string().min(2),
-      phone: z.string().min(1),
-      phone_country_code: z.string().min(1),
-      country: z.string().min(1),
-      age_range: z.string().min(1),
-    }),
-  )
-  .action(async ({ parsedInput }) => {
-    const { email, ...data } = parsedInput;
-
-    const applicationId = await upsertApplicationData(email, data);
-
-    return {
-      success: true,
-      applicationId,
-      message: 'Personal information saved',
-    };
-  });
-
-// Save Section 2: Financial Identity
-export const saveFinancialIdentity = safeActionClient
-  .schema(
-    z.object({
-      email: z.string().email(),
-      monthly_income: z.string().min(1),
-      contribution_capacity: z.string().min(1),
-      contribution_frequency: z.string().min(1),
-    }),
-  )
-  .action(async ({ parsedInput }) => {
-    const { email, ...data } = parsedInput;
-
-    const applicationId = await upsertApplicationData(email, data);
-
-    return {
-      success: true,
-      applicationId,
-      message: 'Financial identity saved',
-    };
-  });
-
-// Save Section 3: Goals & Mindset
-export const saveGoalsMindset = safeActionClient
-  .schema(
-    z.object({
-      email: z.string().email(),
-      goals: z.array(z.string()).min(1),
-      investment_timeline: z.string().min(1),
-    }),
-  )
-  .action(async ({ parsedInput }) => {
-    const { email, ...data } = parsedInput;
-
-    const applicationId = await upsertApplicationData(email, data);
-
-    return {
-      success: true,
-      applicationId,
-      message: 'Goals & mindset saved',
-    };
-  });
-
-// Save Section 4: Behavior & Trust
-export const saveBehaviorTrust = safeActionClient
-  .schema(
-    z.object({
-      email: z.string().email(),
-      webinar_willing: z.boolean(),
-      joining_as: z.string().min(1),
-      referral_source: z.string().min(1),
-    }),
-  )
-  .action(async ({ parsedInput }) => {
-    const { email, ...data } = parsedInput;
-
-    const applicationId = await upsertApplicationData(email, data);
-
-    return {
-      success: true,
-      applicationId,
-      message: 'Behavior & trust saved',
-    };
-  });
 
 export const submitApplication = safeActionClient
   .schema(applicationFormSchema)
@@ -205,47 +92,28 @@ export const submitApplication = safeActionClient
       status: category === 1 ? ('rejected' as const) : ('pending' as const),
     };
 
-    // Check if application already exists (from progress saving)
+    // Public submissions are insert-only. Never let possession of an email
+    // address authorize updates to an existing application.
     const { data: existing } = await supabase
       .from('applications')
-      .select('id, status')
+      .select('id')
       .eq('email', parsedInput.email)
-      .single();
-
-    let applicationId: string;
+      .maybeSingle();
 
     if (existing) {
-      // If application is already approved, don't allow updates
-      if (existing.status === 'approved') {
-        throw new Error(
-          'APPLICATION_ALREADY_APPROVED: This email address has already been approved. You cannot resubmit an application that has already been approved.',
-        );
-      }
-
-      // Update existing application (only if not approved)
-      const { error } = await supabase
-        .from('applications')
-        .update({
-          ...applicationData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-        .select('id')
-        .single();
-
-      if (error) throw new Error(error.message);
-      applicationId = existing.id;
-    } else {
-      // Insert new application
-      const { data: newApp, error } = await supabase
-        .from('applications')
-        .insert(applicationData)
-        .select('id')
-        .single();
-
-      if (error) throw new Error(error.message);
-      applicationId = newApp.id;
+      throw new Error(
+        'APPLICATION_ALREADY_EXISTS: This email address has already been used for an application.',
+      );
     }
+
+    const { data: newApp, error } = await supabase
+      .from('applications')
+      .insert(applicationData)
+      .select('id')
+      .single();
+
+    if (error) throw new Error(error.message);
+    const applicationId = newApp.id;
 
     // Handle Category 1 (Rejected - below 1M UGX)
     if (category === 1) {

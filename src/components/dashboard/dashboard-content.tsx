@@ -40,9 +40,9 @@ export function DashboardContent() {
     return (
       <div className='space-y-6'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
+          <h1 className='text-3xl font-bold tracking-tight'>My Ownership</h1>
           <p className='text-muted-foreground'>
-            Welcome to your contribution dashboard
+            Your apartments, ownership positions, and active account overview.
           </p>
         </div>
 
@@ -69,9 +69,9 @@ export function DashboardContent() {
     <div className='space-y-8'>
       {/* Header */}
       <div>
-        <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
+        <h1 className='text-3xl font-bold tracking-tight'>My Ownership</h1>
         <p className='text-muted-foreground'>
-          Welcome to your contribution dashboard
+          Your apartments, ownership positions, and active account overview.
         </p>
       </div>
 

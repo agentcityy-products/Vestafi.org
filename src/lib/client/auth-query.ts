@@ -51,9 +51,21 @@ export function authQuery<T extends ZodSchema | undefined, R>(
       throw new Error('Unauthorized');
     }
     const user = data.user;
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_role')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (roleError) {
+      throw new Error('Unable to verify user role');
+    }
+
+    user.role = userRole.role;
+
     if (
       options.userType &&
-      !options.userType.includes(user.user_metadata.role)
+      !options.userType.includes(userRole.role)
     ) {
       throw new Error(
         `You must be a ${options.userType.join(' or ')} to access this data`,

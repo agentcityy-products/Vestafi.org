@@ -1,7 +1,12 @@
-create type "public"."exit_window_order_status_enum" as enum ('open', 'partially_filled', 'filled', 'cancelled', 'expired');
+do $enum$ begin
+  create type "public"."exit_window_order_status_enum" as enum ('open', 'partially_filled', 'filled', 'cancelled', 'expired');
+exception when duplicate_object then null;
+end $enum$;
 
-create type "public"."exit_window_status_enum" as enum ('draft', 'active', 'ended');
-
+do $enum$ begin
+  create type "public"."exit_window_status_enum" as enum ('draft', 'active', 'ended');
+exception when duplicate_object then null;
+end $enum$;
 do $enum$ begin
   create type "public"."membership_status_enum" as enum ('pending', 'approved', 'rejected');
 exception when duplicate_object then null;
@@ -493,10 +498,10 @@ alter table "public"."membership_activations" validate constraint "membership_ac
 -- exception when duplicate_object then null;
 -- end $$;
 
--- do $$ begin
---   alter table "public"."property" add constraint "property_submitted_by_fkey" FOREIGN KEY (submitted_by) REFERENCES profile(id) not valid;
--- exception when duplicate_object then null;
--- end $$;
+do $$ begin
+  alter table "public"."property" add constraint "property_submitted_by_fkey" FOREIGN KEY (submitted_by) REFERENCES profile(id) not valid;
+exception when duplicate_object then null;
+end $$;
 
 alter table "public"."property" validate constraint "property_submitted_by_fkey";
 
@@ -1769,6 +1774,4 @@ using (true);
 --   to authenticated
 -- using ((user_id = auth.uid()))
 -- with check ((user_id = auth.uid()));
-
-
 

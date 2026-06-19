@@ -1,6 +1,5 @@
 'use server';
 
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import {
@@ -14,8 +13,8 @@ import { processReferralReward } from '@/actions/referrals';
 
 import { resend } from '@/lib/resend';
 import { adminActionClient, authActionClient } from '@/lib/server/safe-action';
+import { getOrCreateUserVault } from '@/lib/server/vault';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { generateContributionAgreementPDF } from '@/utils/contribution-agreement-pdf';
 import { formatTimestamp } from '@/utils/date-functions';
 import Logger from '@/utils/logger';
@@ -34,75 +33,6 @@ import { VaultDepositRejected } from '@/emails/vault-deposit-rejected';
 import { VaultDepositRequestConfirmation } from '@/emails/vault-deposit-request-confirmation';
 
 import { VaultTransactionUpdate } from '@/types/dao';
-import type { Database } from '@/types/supabase';
-
-export type UserVaultBalances = {
-  balance: number;
-  total_deposited: number;
-  total_deployed: number;
-};
-
-/**
- * Core implementation — pass the appropriate client (user session vs service role).
- * Uses maybeSingle() so "no row" does not surface as a PostgREST error.
- */
-async function getOrCreateUserVaultWithClient(
-  userId: string,
-  supabase: SupabaseClient<Database>,
-): Promise<UserVaultBalances> {
-  const { data: existing } = await supabase
-    .from('user_vault')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (existing) {
-    return {
-      balance: existing.balance || 0,
-      total_deposited: existing.total_deposited || 0,
-      total_deployed: existing.total_deployed || 0,
-    };
-  }
-
-  const { data: newVault, error: createError } = await supabase
-    .from('user_vault')
-    .insert({
-      user_id: userId,
-      balance: 0,
-      total_deposited: 0,
-      total_deployed: 0,
-    })
-    .select('*')
-    .single();
-
-  if (createError) throw new Error(createError.message);
-
-  return {
-    balance: newVault.balance || 0,
-    total_deposited: newVault.total_deposited || 0,
-    total_deployed: newVault.total_deployed || 0,
-  };
-}
-
-/** Current user's session — only for that user's own vault. */
-export async function getOrCreateUserVault(
-  userId: string,
-): Promise<UserVaultBalances> {
-  const supabase = await createSupabaseServerClient();
-  return getOrCreateUserVaultWithClient(userId, supabase);
-}
-
-/**
- * Service role — bypasses RLS. Use only in trusted server code when accessing
- * another user's vault (e.g. crediting seller on exit-window buy).
- */
-export async function getOrCreateUserVaultAdmin(
-  userId: string,
-): Promise<UserVaultBalances> {
-  const supabase = await createSupabaseAdminClient();
-  return getOrCreateUserVaultWithClient(userId, supabase);
-}
-
 // Create vault deposit
 export const createVaultDeposit = authActionClient
   .schema(createVaultDepositSchema)
@@ -315,27 +245,56 @@ export const deployFromVault = authActionClient
       throw new Error(investmentError.message);
     }
 
+    const { data: capacityCheck, error: capacityError } = await supabase
+      .from('listings_view')
+      .select('price, total_investment')
+      .eq('id', propertyId)
+      .single();
+
+    if (
+      capacityError ||
+      !capacityCheck ||
+      Number(capacityCheck.total_investment) > Number(capacityCheck.price)
+    ) {
+      await supabase.from('investment').delete().eq('id', investment.id);
+      await supabase
+        .from('vault_transactions')
+        .delete()
+        .eq('id', transactionId);
+      throw new Error(
+        capacityError?.message ||
+          'Property capacity changed while processing. Please retry.',
+      );
+    }
+
     // Update user vault balance
     const newBalance = vault.balance - amount;
     const newTotalDeployed = vault.total_deployed + amount;
 
-    const { error: vaultUpdateError } = await supabase
+    const { data: updatedVault, error: vaultUpdateError } = await supabase
       .from('user_vault')
       .update({
         balance: newBalance,
         total_deployed: newTotalDeployed,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', authUser.user.id);
+      .eq('user_id', authUser.user.id)
+      .eq('balance', vault.balance)
+      .gte('balance', amount)
+      .select('user_id')
+      .maybeSingle();
 
-    if (vaultUpdateError) {
+    if (vaultUpdateError || !updatedVault) {
       // Rollback: Delete both records
       await supabase.from('investment').delete().eq('id', investment.id);
       await supabase
         .from('vault_transactions')
         .delete()
         .eq('id', transactionId);
-      throw new Error(vaultUpdateError.message);
+      throw new Error(
+        vaultUpdateError?.message ||
+          'Vault balance changed while processing. Please retry.',
+      );
     }
 
     // Sync ownership ledger for exit window (admin client to bypass RLS)

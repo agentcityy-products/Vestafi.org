@@ -44,13 +44,14 @@ const SupportDialog = ({ open, onOpenChange }: SupportDialogProps) => {
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle className='text-center text-2xl font-semibold'>
-            Get in Touch
+            Speak To Vestafi
           </DialogTitle>
         </DialogHeader>
 
         <div className='mt-6 space-y-6'>
           <p className='text-center text-muted-foreground'>
-            We're here to help! Choose your preferred way to reach us.
+            Need help choosing the right ownership opportunity? A Vestafi
+            advisor can guide you privately.
           </p>
 
           <div className='grid grid-cols-3 gap-4'>
@@ -69,7 +70,7 @@ const SupportDialog = ({ open, onOpenChange }: SupportDialogProps) => {
           </div>
 
           <div className='text-center text-sm text-muted-foreground'>
-            <p>Our support team typically responds within 24 hours.</p>
+            <p>A Vestafi advisor typically responds within 24 hours.</p>
             <p className='mt-1'>
               Business hours: Monday - Friday, 9:00 AM - 5:00 PM EAT
             </p>

@@ -4,10 +4,10 @@ import { z } from 'zod';
 
 import { adminActionClient, authActionClient } from '@/lib/server/safe-action';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getFullName } from '@/utils/string-functions';
 
 import {
-  ReferralInsert,
   ReferralRewardInsert,
   ReferralRewardRow,
 } from '@/types/dao';
@@ -57,91 +57,20 @@ async function getOrCreateReferralReward(
 }
 
 /**
- * Create a referral record when application is submitted (Category 2+ only)
- * This is called internally from submitApplication action
- */
-export async function createReferralRecord(
-  applicationId: string,
-  applicationEmail: string,
-  referredByCode: string | null | undefined,
-  category: number | null,
-): Promise<void> {
-  // Only create referral for Category 2+ (Category 1 is rejected)
-  if (!category || category < 2 || !referredByCode) {
-    return;
-  }
-
-  const supabase = await createSupabaseAdminClient();
-  console.log('referredByCode', referredByCode);
-
-  // Find referrer by referral code
-  const { data: referrer, error: referrerError } = await supabase
-    .from('profile')
-    .select('id, email')
-    .eq('referral_code', referredByCode);
-
-  if (referrerError || !referrer) {
-    console.log(
-      'Invalid referral code, silently ignore (user can still submit)',
-      referrerError?.message,
-    );
-    // Invalid referral code, silently ignore (user can still submit)
-    return;
-  }
-
-  //   // Prevent self-referral
-  console.log('referrer[0].email', referrer[0]);
-  //   if (referrer[0].email.toLowerCase() === applicationEmail.toLowerCase()) {
-  //     return;
-  //   }
-
-  // Check if referral already exists for this application
-  const { data: existing } = await supabase
-    .from('referrals')
-    .select('id')
-    .eq('application_id', applicationId);
-
-  if (existing && existing.length > 0) {
-    // Referral already exists, don't create duplicate
-    console.log("Referral already exists, don't create duplicate");
-    return;
-  }
-
-  // Create referral record
-  const referralData: ReferralInsert = {
-    referrer_id: referrer[0].id,
-    application_id: applicationId,
-    referee_id: null, // Will be updated when profile is created
-    referral_code: referredByCode.toLowerCase(),
-    status: 'pending',
-  };
-  console.log('Creating referral record', referralData);
-
-  const { error } = await supabase.from('referrals').insert(referralData);
-
-  if (error) {
-    // Log error but don't fail application submission
-    console.error('Failed to create referral record:', error);
-    return;
-  }
-
-  // Create or get referral_rewards record for the referrer
-  // This allows admin to set reward_per_referral before the first deposit is approved
-  try {
-    await getOrCreateReferralReward(referrer[0].id);
-  } catch (rewardError) {
-    // Log error but don't fail referral creation
-    console.error('Failed to create/get referral reward record:', rewardError);
-  }
-}
-
-/**
  * Update referral record when application is approved and profile is created
  */
 export async function updateReferralOnProfileCreation(
   email: string,
   profileId: string,
 ): Promise<void> {
+  const caller = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await caller.auth.getUser();
+  if (!user || user.id !== profileId || user.email !== email) {
+    throw new Error('Unauthorized');
+  }
+
   const supabase = await createSupabaseAdminClient();
 
   const { data: application, error: applicationError } = await supabase
@@ -186,6 +115,21 @@ export async function updateReferralOnProfileCreation(
  * Process referral reward when referee makes their first investment
  */
 export async function processReferralReward(refereeId: string): Promise<void> {
+  const caller = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await caller.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const { data: callerRole } = await caller
+    .from('user_role')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (user.id !== refereeId && callerRole?.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
   const supabase = await createSupabaseAdminClient();
 
   console.log('Processing referral reward for referee', refereeId);
@@ -211,12 +155,15 @@ export async function processReferralReward(refereeId: string): Promise<void> {
   }
 
   // Update referral status to 'invested'
-  const { error: updateError } = await supabase
+  const { data: claimedReferral, error: updateError } = await supabase
     .from('referrals')
     .update({ status: 'invested' })
-    .eq('id', referral.id);
+    .eq('id', referral.id)
+    .eq('status', 'approved')
+    .select('id')
+    .maybeSingle();
 
-  if (updateError) {
+  if (updateError || !claimedReferral) {
     console.error('Failed to update referral status:', updateError);
     return;
   }

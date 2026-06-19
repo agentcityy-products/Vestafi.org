@@ -13,8 +13,8 @@ export const appConfig = {
   defaultCountryCode: 'UG',
   appUrl: env.NEXT_PUBLIC_APP_URL,
   emails: {
-    support: 'hq@vestafi.co',
-    sender: 'hq@vestafi.co',
+    support: 'hq@vestafi.org',
+    sender: 'hq@vestafi.org',
     admin: env.NEXT_PUBLIC_ADMIN_EMAIL!,
   },
   phone: {
