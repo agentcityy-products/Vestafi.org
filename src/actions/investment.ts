@@ -228,6 +228,36 @@ export const updateInvestmentStatus = adminActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { supabase } = ctx;
     const { id, status } = parsedInput;
+    const adminSupabase = await createSupabaseAdminClient();
+
+    await adminSupabase.rpc('expire_ownership_reservations');
+
+    const { data: pendingInvestment, error: pendingInvestmentError } =
+      await adminSupabase
+        .from('investment')
+        .select('reservation_id')
+        .eq('id', id)
+        .single();
+    if (pendingInvestmentError) {
+      throw new Error(pendingInvestmentError.message);
+    }
+
+    if (status === 'successful' && pendingInvestment.reservation_id) {
+      const { data: reservation, error: reservationError } = await adminSupabase
+        .from('ownership_reservations')
+        .select('status, expires_at')
+        .eq('id', pendingInvestment.reservation_id)
+        .single();
+      if (reservationError) throw new Error(reservationError.message);
+      if (
+        reservation.status === 'expired' ||
+        new Date(reservation.expires_at) <= new Date()
+      ) {
+        throw new Error(
+          'This seven-day reservation has expired and cannot be approved.',
+        );
+      }
+    }
 
     let receiptUrl: string | undefined = undefined;
     let pdfBytes: Uint8Array | undefined = undefined;
@@ -288,6 +318,21 @@ export const updateInvestmentStatus = adminActionClient
       .single();
     if (error) throw new Error(error.message);
 
+    if (data.reservation_id) {
+      const { error: reservationUpdateError } = await adminSupabase
+        .from('ownership_reservations')
+        .update({
+          status: status === 'successful' ? 'completed' : 'rejected',
+          completed_at:
+            status === 'successful' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.reservation_id);
+      if (reservationUpdateError) {
+        throw new Error(reservationUpdateError.message);
+      }
+    }
+
     const propertyLocation = [
       data.property.address_line_1,
       data.property.address_line_2,
@@ -307,7 +352,6 @@ export const updateInvestmentStatus = adminActionClient
 
     if (status === 'successful') {
       // Sync ownership ledger for exit window (admin client to bypass RLS)
-      const adminSupabase = await createSupabaseAdminClient();
       const { error: movementError } = await adminSupabase
         .from('property_ownership_movements')
         .insert({
@@ -344,7 +388,9 @@ export const updateInvestmentStatus = adminActionClient
         });
       }
       if (agreementPdfBuffer) {
-        const safeLastName = (data.user.last_name ?? 'agreement').replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        const safeLastName = (data.user.last_name ?? 'agreement')
+          .replace(/\s+/g, '-')
+          .replace(/[^a-zA-Z0-9-]/g, '');
         const dateStr = new Date().toISOString().slice(0, 10);
         attachments.push({
           filename: `vestafi-contribution-agreement-${safeLastName}-${dateStr}.pdf`,
@@ -448,7 +494,10 @@ export const getTotalInvested = async (): Promise<number> => {
 
   if (error) throw new Error(error.message);
 
-  const total = (data || []).reduce((sum, row) => sum + Number(row.amount_delta), 0);
+  const total = (data || []).reduce(
+    (sum, row) => sum + Number(row.amount_delta),
+    0,
+  );
   return total;
 };
 
@@ -458,7 +507,14 @@ export type InvestmentDisplayStatus = 'pending' | 'successful' | 'rejected';
 
 export type MyStakeRow = {
   property_id: string;
-  property: { id: string; title: string | null; images: string[] | null; city: string | null; country: string | null; price: number };
+  property: {
+    id: string;
+    title: string | null;
+    images: string[] | null;
+    city: string | null;
+    country: string | null;
+    price: number;
+  };
   amount: number;
   type: StakeType;
   /** Investment outcome for contributions UI (ledger stakes are successful). */
@@ -477,12 +533,15 @@ export const getMyStakes = async (): Promise<MyStakeRow[]> => {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
-  if (userError || !user) throw new Error(userError?.message || 'User not found');
+  if (userError || !user)
+    throw new Error(userError?.message || 'User not found');
 
   const [movementsRes, pendingRejectedRes] = await Promise.all([
     supabase
       .from('property_ownership_movements')
-      .select('property_id, amount_delta, reason, created_at, property(id, title, images, city, country, price)')
+      .select(
+        'property_id, amount_delta, reason, created_at, property(id, title, images, city, country, price)',
+      )
       .eq('user_id', user.id),
     supabase
       .from('investment')
@@ -494,14 +553,21 @@ export const getMyStakes = async (): Promise<MyStakeRow[]> => {
   ]);
 
   if (movementsRes.error) throw new Error(movementsRes.error.message);
-  if (pendingRejectedRes.error) throw new Error(pendingRejectedRes.error.message);
+  if (pendingRejectedRes.error)
+    throw new Error(pendingRejectedRes.error.message);
 
   const movements = movementsRes.data ?? [];
   const pendingAndRejected = pendingRejectedRes.data ?? [];
 
   const byProperty = new Map<
     string,
-    { amount: number; hasDirect: boolean; hasAcquired: boolean; latestAt: string; property: MyStakeRow['property'] }
+    {
+      amount: number;
+      hasDirect: boolean;
+      hasAcquired: boolean;
+      latestAt: string;
+      property: MyStakeRow['property'];
+    }
   >();
 
   for (const m of movements) {
@@ -532,7 +598,12 @@ export const getMyStakes = async (): Promise<MyStakeRow[]> => {
 
   for (const [, agg] of byProperty) {
     if (agg.amount <= 0) continue;
-    const type: StakeType = agg.hasDirect && agg.hasAcquired ? 'both' : agg.hasDirect ? 'direct' : 'acquired';
+    const type: StakeType =
+      agg.hasDirect && agg.hasAcquired
+        ? 'both'
+        : agg.hasDirect
+          ? 'direct'
+          : 'acquired';
     stakes.push({
       property_id: agg.property.id,
       property: agg.property,
@@ -551,7 +622,14 @@ export const getMyStakes = async (): Promise<MyStakeRow[]> => {
     const isRejected = invStatus === 'rejected';
     stakes.push({
       property_id: propertyId,
-      property: { id: prop.id ?? propertyId, title: prop.title ?? null, images: prop.images ?? null, city: prop.city ?? null, country: prop.country ?? null, price: prop.price ?? 0 },
+      property: {
+        id: prop.id ?? propertyId,
+        title: prop.title ?? null,
+        images: prop.images ?? null,
+        city: prop.city ?? null,
+        country: prop.country ?? null,
+        price: prop.price ?? 0,
+      },
       amount: Number((inv as { amount?: number }).amount ?? 0),
       type: 'pending',
       status: isRejected ? 'rejected' : 'pending',

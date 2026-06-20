@@ -9,9 +9,7 @@ import {
   CreditCard,
   ImageIcon,
   Info,
-  Smartphone,
   Upload,
-  User,
   Wallet,
   X,
 } from 'lucide-react';
@@ -98,7 +96,10 @@ export const PaymentInstructionsDialog = ({
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter((file) => {
-      if (!file.type.startsWith('image/') && !file.type.startsWith('application/pdf')) {
+      if (
+        !file.type.startsWith('image/') &&
+        !file.type.startsWith('application/pdf')
+      ) {
         toast.error(`${file.name} is not an image or PDF file`);
         return false;
       }
@@ -170,26 +171,6 @@ export const PaymentInstructionsDialog = ({
       value: bankData.accountNumber,
       icon: <CreditCard className='h-4 w-4' />,
     },
-    {
-      label: 'MTN Mobile Money',
-      value: bankData.mtnMobileMoneyCode,
-      icon: <Smartphone className='h-4 w-4' />,
-    },
-    {
-      label: 'MTN Mobile Money Name',
-      value: bankData.mtnMobileMoneyName,
-      icon: <User className='h-4 w-4' />,
-    },
-    {
-      label: 'Airtel Money',
-      value: bankData.airtelMoneyCode,
-      icon: <Smartphone className='h-4 w-4' />,
-    },
-    {
-      label: 'Airtel Money Name',
-      value: bankData.airtelMoneyName,
-      icon: <User className='h-4 w-4' />,
-    },
   ];
 
   const getDialogTitle = () => {
@@ -197,7 +178,7 @@ export const PaymentInstructionsDialog = ({
       case 'choice':
         return 'Choose Payment Method';
       case 'vault':
-        return 'Deploy from Vault';
+        return 'Deploy from Vestafi Vault';
       case 'bank-instructions':
         return 'Payment Instructions';
       case 'bank-proof':
@@ -212,7 +193,7 @@ export const PaymentInstructionsDialog = ({
       case 'choice':
         return 'Select how you want to complete your contribution';
       case 'vault':
-        return 'Deploy funds from your vault to this property';
+        return 'Deploy funds from your Vestafi Vault to this property';
       case 'bank-instructions':
         return 'Follow the instructions below to complete your contribution';
       case 'bank-proof':
@@ -267,7 +248,7 @@ export const PaymentInstructionsDialog = ({
                   <CardContent className='p-6'>
                     <div className='mb-3 flex items-center gap-3'>
                       <Wallet className='h-6 w-6 text-primary' />
-                      <h4 className='font-semibold'>Deploy from Vault</h4>
+                      <h4 className='font-semibold'>Vestafi Vault</h4>
                     </div>
                     <p className='mb-4 text-sm text-muted-foreground'>
                       Use your existing vault balance

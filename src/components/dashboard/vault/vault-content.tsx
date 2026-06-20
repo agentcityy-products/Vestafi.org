@@ -96,9 +96,9 @@ export function VaultContent() {
     return (
       <div className='space-y-6'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight'>My Vault</h1>
+          <h1 className='text-3xl font-bold tracking-tight'>Vestafi Vault</h1>
           <p className='text-muted-foreground'>
-            Manage your vault balance and deploy funds to properties
+            Manage your Vestafi Vault balance and fund ownership
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export function VaultContent() {
 
   const cards = [
     {
-      title: 'Vault Balance',
+      title: 'Vestafi Vault Balance',
       value: formatCurrency(balance),
       description: 'Available funds ready to deploy',
       icon: <Wallet className='h-10 w-10' />,
@@ -151,9 +151,9 @@ export function VaultContent() {
     <div className='space-y-8'>
       {/* Header */}
       <div>
-        <h1 className='text-3xl font-bold tracking-tight'>My Vault</h1>
+        <h1 className='text-3xl font-bold tracking-tight'>Vestafi Vault</h1>
         <p className='text-muted-foreground'>
-          Manage your vault balance and deploy funds to properties
+          Manage your Vestafi Vault balance and fund ownership
         </p>
       </div>
 

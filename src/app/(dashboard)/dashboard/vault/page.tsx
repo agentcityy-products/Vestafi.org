@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import { VaultContent } from '@/components/dashboard/vault/vault-content';
 
 export const metadata: Metadata = {
-  title: 'My Vault',
-  description: 'Manage your vault balance and deploy funds to properties',
+  title: 'Vestafi Vault',
+  description: 'Manage your Vestafi Vault balance and fund ownership',
 };
 
 export default function VaultPage() {

@@ -108,6 +108,9 @@ export function PendingInvestmentsTable() {
       toast.success(`Contribution ${action} successfully`);
       setConfirmationDialog({ isOpen: false, investment: null, action: null });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.INVESTMENTS] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.OWNERSHIP_RESERVATIONS],
+      });
     },
     onError,
   });

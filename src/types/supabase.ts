@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -36,22 +36,7 @@ export type Database = {
           updated_by?: string | null
           value?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "app_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profile"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "app_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "vault_view"
-            referencedColumns: ["profile_id"]
-          },
-        ]
+        Relationships: []
       }
       applications: {
         Row: {
@@ -427,9 +412,12 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          ownership_type: string | null
+          payment_method: string | null
           proof_images: string[] | null
           property_id: string
           receipt_url: string | null
+          reservation_id: string | null
           status: Database["public"]["Enums"]["investment_status_enum"]
           updated_at: string
           user_id: string
@@ -439,9 +427,12 @@ export type Database = {
           amount: number
           created_at?: string
           id?: string
+          ownership_type?: string | null
+          payment_method?: string | null
           proof_images?: string[] | null
           property_id: string
           receipt_url?: string | null
+          reservation_id?: string | null
           status?: Database["public"]["Enums"]["investment_status_enum"]
           updated_at?: string
           user_id: string
@@ -451,9 +442,12 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          ownership_type?: string | null
+          payment_method?: string | null
           proof_images?: string[] | null
           property_id?: string
           receipt_url?: string | null
+          reservation_id?: string | null
           status?: Database["public"]["Enums"]["investment_status_enum"]
           updated_at?: string
           user_id?: string
@@ -479,6 +473,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investment_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "ownership_reservations"
             referencedColumns: ["id"]
           },
           {
@@ -735,6 +736,116 @@ export type Database = {
           },
         ]
       }
+      ownership_reservations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          investment_id: string | null
+          legal_fee: number
+          opportunity_type: string
+          ownership_amount: number
+          payment_method: string
+          proof_images: string[]
+          property_id: string
+          service_fee: number
+          status: string
+          total_due: number
+          updated_at: string
+          user_id: string
+          vault_transaction_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          investment_id?: string | null
+          legal_fee?: number
+          opportunity_type: string
+          ownership_amount: number
+          payment_method: string
+          proof_images?: string[]
+          property_id: string
+          service_fee?: number
+          status?: string
+          total_due: number
+          updated_at?: string
+          user_id: string
+          vault_transaction_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          investment_id?: string | null
+          legal_fee?: number
+          opportunity_type?: string
+          ownership_amount?: number
+          payment_method?: string
+          proof_images?: string[]
+          property_id?: string
+          service_fee?: number
+          status?: string
+          total_due?: number
+          updated_at?: string
+          user_id?: string
+          vault_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ownership_reservations_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "listings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "owned_properties_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "vault_view"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "ownership_reservations_vault_transaction_id_fkey"
+            columns: ["vault_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "vault_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile: {
         Row: {
           country_code: string
@@ -791,8 +902,8 @@ export type Database = {
           listing_date: string | null
           maximum_monthly_rent: number | null
           minimum_monthly_rent: number | null
-          ownership_proof: string[] | null
           opportunity_type: string
+          ownership_proof: string[] | null
           price: number
           price_usd: number | null
           property_type: Database["public"]["Enums"]["property_type_enum"]
@@ -816,8 +927,8 @@ export type Database = {
           listing_date?: string | null
           maximum_monthly_rent?: number | null
           minimum_monthly_rent?: number | null
-          ownership_proof?: string[] | null
           opportunity_type?: string
+          ownership_proof?: string[] | null
           price: number
           price_usd?: number | null
           property_type?: Database["public"]["Enums"]["property_type_enum"]
@@ -841,8 +952,8 @@ export type Database = {
           listing_date?: string | null
           maximum_monthly_rent?: number | null
           minimum_monthly_rent?: number | null
-          ownership_proof?: string[] | null
           opportunity_type?: string
+          ownership_proof?: string[] | null
           price?: number
           price_usd?: number | null
           property_type?: Database["public"]["Enums"]["property_type_enum"]
@@ -1103,14 +1214,14 @@ export type Database = {
           {
             foreignKeyName: "user_vault_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "user_vault_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "vault_view"
             referencedColumns: ["profile_id"]
           },
@@ -1288,6 +1399,7 @@ export type Database = {
           address_line_1: string | null
           address_line_2: string | null
           allow_first_time_investors: boolean | null
+          available_ownership: number | null
           average_rent_6_months: number | null
           city: string | null
           country: string | null
@@ -1296,10 +1408,12 @@ export type Database = {
           id: string | null
           images: string[] | null
           investment_percentage: number | null
-          opportunity_type: string | null
+          is_reserved: boolean | null
           maximum_monthly_rent: number | null
           minimum_monthly_rent: number | null
+          opportunity_type: string | null
           price: number | null
+          reserved_amount: number | null
           state: string | null
           title: string | null
           total_investment: number | null
@@ -1345,6 +1459,7 @@ export type Database = {
       }
     }
     Functions: {
+      expire_ownership_reservations: { Args: never; Returns: number }
       generate_referral_code_from_email: {
         Args: { email_address: string }
         Returns: string

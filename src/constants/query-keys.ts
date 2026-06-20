@@ -9,6 +9,7 @@ export enum QueryKeys {
   LISTINGS = 'listings',
   VAULT = 'vault',
   OWNED_PROPERTIES = 'owned-properties',
+  OWNERSHIP_RESERVATIONS = 'ownership-reservations',
   USER_APPROVED_RENTAL_PROPERTIES = 'user-approved-rental-properties',
   APPROVED_WITHDRAWALS = 'approved-withdrawals',
   APPLICATIONS = 'applications',
