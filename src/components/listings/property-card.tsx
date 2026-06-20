@@ -85,7 +85,8 @@ export const PropertyCard = ({
   if (!property.id) return null;
 
   const images = property.images ?? [];
-  const mainImage = images[currentImageIndex] ?? '/placeholder-property.jpg';
+  const mainImage =
+    images[currentImageIndex] ?? '/images/vestafi/apartment-placeholder.png';
   const hasMultipleImages = images.length > 1;
   const ownershipProgress = property.investment_percentage ?? 0;
   const isFullyPositioned = ownershipProgress >= 100;

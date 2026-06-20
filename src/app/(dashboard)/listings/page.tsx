@@ -10,6 +10,7 @@ import {
   Users,
   WalletCards,
 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
 
@@ -33,6 +34,17 @@ import { isListingAccessible } from '@/controller/listing/listing-access';
 import { ListingsViewRow } from '@/types/dao';
 
 const ListingsPage = () => {
+  const searchParams = useSearchParams();
+  const requestedType = searchParams.get('type');
+  const [activeType, setActiveType] = useState<
+    'all' | 'prime' | 'live' | 'fractional'
+  >(
+    requestedType === 'prime' ||
+      requestedType === 'live' ||
+      requestedType === 'fractional'
+      ? requestedType
+      : 'all',
+  );
   const [supportOpen, setSupportOpen] = useState(false);
   const { data: totalInvested, isLoading: isTotalInvestedLoading } =
     useTotalInvested();
@@ -159,6 +171,25 @@ const ListingsPage = () => {
             </div>
           )}
         </div>
+        <div className='mt-5 flex flex-wrap gap-2'>
+          {[
+            ['all', 'All openings'],
+            ['prime', 'Vestafi Prime'],
+            ['live', 'Vestafi Live'],
+            ['fractional', 'Vestafi Fractional'],
+          ].map(([value, label]) => (
+            <Button
+              key={value}
+              variant={activeType === value ? 'default' : 'outline'}
+              className='rounded-full'
+              onClick={() =>
+                setActiveType(value as 'all' | 'prime' | 'live' | 'fractional')
+              }
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
@@ -214,6 +245,9 @@ const ListingsPage = () => {
                 icon: Users,
               },
             ].map((section) => {
+              if (activeType !== 'all' && activeType !== section.key) {
+                return null;
+              }
               const sectionProperties = groupedProperties[section.key];
               if (sectionProperties.length === 0) return null;
               const Icon = section.icon;

@@ -228,7 +228,7 @@ const Sidebar = ({ userEmail, isAdmin }: SidebarProps) => {
       icon: Building,
       subLinks: [
         { label: 'Activity', href: paths.dashboard.contributions },
-        { label: 'Ownership Vault', href: paths.dashboard.vault },
+        { label: 'Vestafi Vault', href: paths.dashboard.vault },
         { label: 'Transfer Ownership', href: paths.dashboard.exitWindow.root },
       ],
     },

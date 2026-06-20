@@ -2,16 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Building2,
-  Copy,
-  CreditCard,
-  Info,
-  Plus,
-  Smartphone,
-  Upload,
-  User,
-} from 'lucide-react';
+import { Building2, Copy, CreditCard, Info, Plus, Upload } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -111,26 +102,6 @@ export function CreateDepositDialog() {
       value: bankData.accountNumber,
       icon: <CreditCard className='h-4 w-4' />,
     },
-    {
-      label: 'MTN Mobile Money',
-      value: bankData.mtnMobileMoneyCode,
-      icon: <Smartphone className='h-4 w-4' />,
-    },
-    {
-      label: 'MTN Mobile Money Name',
-      value: bankData.mtnMobileMoneyName,
-      icon: <User className='h-4 w-4' />,
-    },
-    {
-      label: 'Airtel Money',
-      value: bankData.airtelMoneyCode,
-      icon: <Smartphone className='h-4 w-4' />,
-    },
-    {
-      label: 'Airtel Money Name',
-      value: bankData.airtelMoneyName,
-      icon: <User className='h-4 w-4' />,
-    },
   ];
 
   const handleFileUpload = async (files: File[]) => {
@@ -193,9 +164,9 @@ export function CreateDepositDialog() {
       </DialogTrigger>
       <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-2xl'>
         <DialogHeader>
-          <DialogTitle>Deposit to Vault</DialogTitle>
+          <DialogTitle>Deposit to Vestafi Vault</DialogTitle>
           <DialogDescription className='space-y-2'>
-            <p>Upload payment proof and deposit funds to your vault.</p>
+            <p>Upload a bank transfer proof and fund your Vestafi Vault.</p>
             <div className='flex items-center gap-2 text-sm font-medium'>
               <span className='text-muted-foreground'>Minimum deposit:</span>
               <span className='text-primary'>

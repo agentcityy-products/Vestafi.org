@@ -43,6 +43,8 @@ export type ReferralRewardUpdate =
 export type UserVaultRow = Database['public']['Tables']['user_vault']['Row'];
 export type VaultTransactionRow =
   Database['public']['Tables']['vault_transactions']['Row'];
+export type OwnershipReservationRow =
+  Database['public']['Tables']['ownership_reservations']['Row'];
 
 // * Insert types
 export type BankInfoInsert =
@@ -62,6 +64,8 @@ export type UserVaultInsert =
   Database['public']['Tables']['user_vault']['Insert'];
 export type VaultTransactionInsert =
   Database['public']['Tables']['vault_transactions']['Insert'];
+export type OwnershipReservationInsert =
+  Database['public']['Tables']['ownership_reservations']['Insert'];
 export type MembershipActivationInsert =
   Database['public']['Tables']['membership_activations']['Insert'];
 
@@ -83,6 +87,8 @@ export type UserVaultUpdate =
   Database['public']['Tables']['user_vault']['Update'];
 export type VaultTransactionUpdate =
   Database['public']['Tables']['vault_transactions']['Update'];
+export type OwnershipReservationUpdate =
+  Database['public']['Tables']['ownership_reservations']['Update'];
 
 // * View types
 export type VaultViewRow = Database['public']['Views']['vault_view']['Row'];

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { getTotalInvested } from '@/actions/investment';
 import { getListingById } from '@/actions/listing';
 
+import { OwnershipJourney } from '@/components/listings/ownership-journey';
 import { PropertyDetailsContainer } from '@/components/listings/property-details-container';
 import { Button } from '@/components/ui/button';
 
@@ -89,7 +90,12 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
       </div>
 
       {/* Property Details Content */}
-      <PropertyDetailsContainer initialProperty={property} />
+      {property.opportunity_type === 'prime' ||
+      property.opportunity_type === 'live' ? (
+        <OwnershipJourney initialProperty={property} />
+      ) : (
+        <PropertyDetailsContainer initialProperty={property} />
+      )}
     </div>
   );
 }

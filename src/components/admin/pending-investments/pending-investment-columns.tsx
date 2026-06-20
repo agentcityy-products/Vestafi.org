@@ -62,12 +62,13 @@ async function downloadFile(url: string, filename?: string) {
     const blobUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;
-    
+
     // Determine filename
     const fileExtension = getFileExtension(url);
-    const defaultFilename = filename || `payment-proof-${Date.now()}.${fileExtension || 'pdf'}`;
+    const defaultFilename =
+      filename || `payment-proof-${Date.now()}.${fileExtension || 'pdf'}`;
     link.download = defaultFilename;
-    
+
     document.body.appendChild(link);
     link.click();
     window.URL.revokeObjectURL(blobUrl);
@@ -150,6 +151,25 @@ export const createPendingInvestmentColumns = ({
     },
   },
   {
+    accessorKey: 'ownership_type',
+    header: 'Ownership',
+    cell: ({ row }) => {
+      const type = row.original.ownership_type || 'fractional';
+      return (
+        <div className='space-y-1'>
+          <Badge variant='outline' className='uppercase'>
+            {type}
+          </Badge>
+          <p className='text-xs text-muted-foreground'>
+            {row.original.payment_method === 'vault'
+              ? 'Vestafi Vault'
+              : 'Bank transfer'}
+          </p>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: 'amount',
     header: 'Amount',
     cell: ({ row }) => {
@@ -211,7 +231,8 @@ export const createPendingInvestmentColumns = ({
 
       // Count PDFs and images separately
       const pdfCount = proofImages?.filter((url) => isPdfFile(url)).length || 0;
-      const imageCount = proofImages?.filter((url) => !isPdfFile(url)).length || 0;
+      const imageCount =
+        proofImages?.filter((url) => !isPdfFile(url)).length || 0;
 
       // Determine badge text
       let badgeText = '';
@@ -237,7 +258,9 @@ export const createPendingInvestmentColumns = ({
                   key={index}
                   variant='ghost'
                   size='sm'
-                  onClick={() => downloadFile(url, `payment-proof-${index + 1}.pdf`)}
+                  onClick={() =>
+                    downloadFile(url, `payment-proof-${index + 1}.pdf`)
+                  }
                   className='flex h-6 w-6 items-center justify-center p-0'
                   title='Download PDF'
                 >
@@ -276,7 +299,9 @@ export const createPendingInvestmentColumns = ({
                   key={index}
                   variant='ghost'
                   size='sm'
-                  onClick={() => downloadFile(url, `payment-proof-${index + 1}.pdf`)}
+                  onClick={() =>
+                    downloadFile(url, `payment-proof-${index + 1}.pdf`)
+                  }
                   className='flex h-6 w-6 items-center justify-center p-0'
                   title='Download PDF'
                 >
