@@ -1,10 +1,6 @@
 import {
   ArrowRight,
-  CalendarDays,
   Construction,
-  MessagesSquare,
-  Newspaper,
-  Star,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -17,7 +13,6 @@ interface ComingSoonPageProps {
   title: string;
   description: string;
   note: string;
-  kind: 'watchlist' | 'messages' | 'briefings' | 'distributions';
 }
 
 export function ComingSoonPage({
@@ -25,22 +20,13 @@ export function ComingSoonPage({
   title,
   description,
   note,
-  kind,
 }: ComingSoonPageProps) {
-  const icons = {
-    watchlist: Star,
-    messages: MessagesSquare,
-    briefings: Newspaper,
-    distributions: CalendarDays,
-  };
-  const Icon = icons[kind];
-
   return (
     <div className='mx-auto flex min-h-[calc(100vh-9rem)] max-w-6xl items-center'>
       <section className='relative w-full overflow-hidden rounded-[2rem] border border-emerald-100 bg-[linear-gradient(145deg,#ffffff,#f7fcf8_55%,#eaf8ee)] p-8 shadow-[0_24px_80px_-55px_rgba(0,82,45,.5)] sm:p-12 lg:p-16'>
         <div className='relative z-10 max-w-2xl'>
           <div className='inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-800 shadow-sm'>
-            <Icon className='h-5 w-5' />
+            <Construction className='h-6 w-6' />
           </div>
           <p className='mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700'>
             {eyebrow}

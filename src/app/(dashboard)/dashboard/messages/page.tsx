@@ -7,7 +7,6 @@ export default function MessagesPage() {
       title='Messages'
       description='A dedicated conversation space for guidance from the Vestafi team and ownership updates.'
       note='Secure member messaging is being prepared. Until it opens, use Support to speak directly with Vestafi.'
-      kind='messages'
     />
   );
 }
