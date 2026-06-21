@@ -5,6 +5,7 @@ export const paths = {
   auth: {
     login: '/auth/login',
     callback: '/auth/callback',
+    complete: '/auth/complete',
     apply: '/apply',
   },
   onboarding: '/onboarding',

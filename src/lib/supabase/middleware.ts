@@ -114,6 +114,7 @@ const publicRoutes = [
 const guestRoutes = [
   paths.auth.login,
   paths.auth.callback,
+  paths.auth.complete,
   paths.auth.apply,
 ] as string[];
 
