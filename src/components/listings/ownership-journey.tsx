@@ -158,7 +158,7 @@ export function OwnershipJourney({
   const submitCheckout = async () => {
     if (!property.id || !user) return;
     if (paymentMethod === 'vault' && vaultBalance < totalDue) {
-      toast.error('Your Vestafi Vault balance is not enough for this payment.');
+      toast.error('Your Vestafi Wallet balance is not enough for this payment.');
       return;
     }
     if (paymentMethod === 'bank_transfer' && proofFiles.length === 0) {
@@ -521,7 +521,7 @@ export function OwnershipJourney({
       {step === 'payment' && (
         <JourneyCard
           title='Choose a payment method'
-          description='Complete immediately from Vestafi Vault or reserve for seven days with a bank transfer.'
+          description='Complete immediately from Vestafi Wallet or reserve for seven days with a bank transfer.'
           onBack={() => setStep('summary')}
         >
           <div className='grid gap-4 sm:grid-cols-2'>
@@ -535,7 +535,7 @@ export function OwnershipJourney({
             <PaymentChoice
               active={paymentMethod === 'vault'}
               icon={Vault}
-              title='Vestafi Vault'
+              title='Vestafi Wallet'
               text={
                 vaultLoading
                   ? 'Loading balance...'
@@ -602,7 +602,7 @@ export function OwnershipJourney({
             </div>
           ) : (
             <div className='mt-6 rounded-2xl border p-5'>
-              <PriceRow label='Vestafi Vault balance' value={vaultBalance} />
+              <PriceRow label='Vestafi Wallet balance' value={vaultBalance} />
               <PriceRow label='Total due' value={totalDue} />
               <Separator className='my-3' />
               <PriceRow
@@ -612,7 +612,7 @@ export function OwnershipJourney({
               />
               {vaultBalance < totalDue && (
                 <p className='mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700'>
-                  Add {formatCurrency(totalDue - vaultBalance)} to Vestafi Vault
+                  Add {formatCurrency(totalDue - vaultBalance)} to Vestafi Wallet
                   before continuing.
                 </p>
               )}
@@ -631,7 +631,7 @@ export function OwnershipJourney({
             {checkoutAction.isExecuting
               ? 'Completing ownership...'
               : paymentMethod === 'vault'
-                ? 'Complete with Vestafi Vault'
+                ? 'Complete with Vestafi Wallet'
                 : 'Submit Transfer & Reserve'}
             {!checkoutAction.isExecuting && (
               <ArrowRight className='ml-2 h-4 w-4' />

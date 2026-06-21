@@ -178,7 +178,7 @@ export const PaymentInstructionsDialog = ({
       case 'choice':
         return 'Choose Payment Method';
       case 'vault':
-        return 'Deploy from Vestafi Vault';
+        return 'Pay with Vestafi Wallet';
       case 'bank-instructions':
         return 'Payment Instructions';
       case 'bank-proof':
@@ -193,7 +193,7 @@ export const PaymentInstructionsDialog = ({
       case 'choice':
         return 'Select how you want to complete your contribution';
       case 'vault':
-        return 'Deploy funds from your Vestafi Vault to this property';
+        return 'Use your Vestafi Wallet balance for this ownership';
       case 'bank-instructions':
         return 'Follow the instructions below to complete your contribution';
       case 'bank-proof':
@@ -248,10 +248,10 @@ export const PaymentInstructionsDialog = ({
                   <CardContent className='p-6'>
                     <div className='mb-3 flex items-center gap-3'>
                       <Wallet className='h-6 w-6 text-primary' />
-                      <h4 className='font-semibold'>Vestafi Vault</h4>
+                      <h4 className='font-semibold'>Vestafi Wallet</h4>
                     </div>
                     <p className='mb-4 text-sm text-muted-foreground'>
-                      Use your existing vault balance
+                      Use your available wallet balance
                     </p>
                     <div className='space-y-2'>
                       <div className='flex justify-between text-sm'>
@@ -312,7 +312,7 @@ export const PaymentInstructionsDialog = ({
 
               <div className='flex items-center justify-between'>
                 <span className='text-sm text-muted-foreground'>
-                  Vault Balance
+                  Vestafi Wallet Balance
                 </span>
                 <div className='flex items-center gap-2'>
                   <Wallet className='h-4 w-4 text-muted-foreground' />
@@ -329,14 +329,14 @@ export const PaymentInstructionsDialog = ({
                   <AlertCircle className='h-4 w-4' />
                   <AlertDescription className='space-y-2'>
                     <p>
-                      Insufficient vault balance. You need{' '}
+                      Insufficient wallet balance. You need{' '}
                       <strong>{formatCurrency(balanceShortfall)}</strong> more
                       to complete this deployment.
                     </p>
                     <Link href={paths.dashboard.vault}>
                       <Button variant='outline' size='sm' className='mt-2'>
                         <ArrowRight className='mr-2 h-4 w-4' />
-                        Go to Vault to Deposit
+                        Fund Vestafi Wallet
                       </Button>
                     </Link>
                   </AlertDescription>
@@ -347,7 +347,7 @@ export const PaymentInstructionsDialog = ({
                 <Alert>
                   <AlertCircle className='h-4 w-4' />
                   <AlertDescription>
-                    Your vault balance is sufficient for this deployment.
+                    Your wallet balance is sufficient for this ownership.
                   </AlertDescription>
                 </Alert>
               )}

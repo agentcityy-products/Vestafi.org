@@ -129,6 +129,19 @@ export const PropertyDetailsContainer = ({
 
   return (
     <>
+      <div className='mb-6 rounded-2xl border border-violet-100 bg-gradient-to-r from-violet-50 via-white to-emerald-50 p-5'>
+        <p className='text-xs font-semibold uppercase tracking-[0.18em] text-violet-700'>
+          Vestafi Fractional
+        </p>
+        <h1 className='mt-2 text-2xl font-bold'>
+          Own this apartment together.
+        </h1>
+        <p className='mt-2 max-w-2xl text-sm text-muted-foreground'>
+          Choose a contribution, receive a documented ownership share, and
+          participate in rental income through the existing Vestafi
+          contribution and wallet mechanics.
+        </p>
+      </div>
       <div className='grid grid-cols-1 gap-8 lg:grid-cols-3'>
         <div className='lg:col-span-2'>
           <PropertyDetails property={property} />

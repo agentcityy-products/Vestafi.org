@@ -1,4 +1,11 @@
-import { ArrowRight, LucideIcon } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  Construction,
+  MessagesSquare,
+  Newspaper,
+  Star,
+} from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -10,7 +17,7 @@ interface ComingSoonPageProps {
   title: string;
   description: string;
   note: string;
-  icon: LucideIcon;
+  kind: 'watchlist' | 'messages' | 'briefings' | 'distributions';
 }
 
 export function ComingSoonPage({
@@ -18,13 +25,21 @@ export function ComingSoonPage({
   title,
   description,
   note,
-  icon: Icon,
+  kind,
 }: ComingSoonPageProps) {
+  const icons = {
+    watchlist: Star,
+    messages: MessagesSquare,
+    briefings: Newspaper,
+    distributions: CalendarDays,
+  };
+  const Icon = icons[kind];
+
   return (
-    <div className='mx-auto flex min-h-[calc(100vh-9rem)] max-w-5xl items-center'>
-      <section className='relative w-full overflow-hidden rounded-[2rem] border border-stone-200 bg-[linear-gradient(145deg,#fafaf9,#ffffff_55%,#ecfdf5)] p-8 sm:p-12 lg:p-16'>
+    <div className='mx-auto flex min-h-[calc(100vh-9rem)] max-w-6xl items-center'>
+      <section className='relative w-full overflow-hidden rounded-[2rem] border border-emerald-100 bg-[linear-gradient(145deg,#ffffff,#f7fcf8_55%,#eaf8ee)] p-8 shadow-[0_24px_80px_-55px_rgba(0,82,45,.5)] sm:p-12 lg:p-16'>
         <div className='relative z-10 max-w-2xl'>
-          <div className='inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-800'>
+          <div className='inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-800 shadow-sm'>
             <Icon className='h-5 w-5' />
           </div>
           <p className='mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700'>
@@ -36,8 +51,12 @@ export function ComingSoonPage({
           <p className='mt-5 max-w-xl text-lg leading-8 text-stone-600'>
             {description}
           </p>
-          <div className='mt-8 rounded-2xl border border-stone-200/80 bg-white/75 p-5 text-sm leading-6 text-stone-600 shadow-sm backdrop-blur'>
-            {note}
+          <div className='mt-8 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm'>
+            <div className='flex items-center gap-2 bg-emerald-900 px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white'>
+              <Construction className='h-4 w-4 text-emerald-200' />
+              Coming soon
+            </div>
+            <p className='p-5 text-sm leading-6 text-stone-600'>{note}</p>
           </div>
           <Button asChild className='mt-8 rounded-xl'>
             <Link href={paths.listings.list}>
@@ -46,7 +65,8 @@ export function ComingSoonPage({
             </Link>
           </Button>
         </div>
-        <div className='absolute -right-28 -top-28 h-96 w-96 rounded-full bg-emerald-100/60 blur-3xl' />
+        <div className='absolute -right-28 -top-28 h-96 w-96 rounded-full bg-emerald-200/55 blur-3xl' />
+        <div className='absolute -bottom-32 right-28 h-72 w-72 rounded-full bg-amber-100/45 blur-3xl' />
       </section>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  Bell,
   Building2,
   CalendarClock,
   Crown,
@@ -10,7 +11,6 @@ import {
   ShieldCheck,
   TrendingUp,
   Users,
-  Vault,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { useListings } from '@/hooks/queries/listing';
 import { useOwnershipReservations } from '@/hooks/queries/ownership';
 import { useProfile } from '@/hooks/queries/profile';
-import { useOwnedProperties } from '@/hooks/queries/properties';
 
 import { PropertyCard } from '@/components/listings/property-card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,6 @@ const PLACEHOLDER_IMAGE = '/images/vestafi/apartment-placeholder.png';
 
 export function DashboardContent() {
   const { data: profile } = useProfile();
-  const { data: ownedProperties = [] } = useOwnedProperties();
   const { data: reservations = [] } = useOwnershipReservations();
   const { data: listingsResult } = useListings({
     page: 1,
@@ -46,10 +44,6 @@ export function DashboardContent() {
   const firstName = profile?.first_name || 'Member';
   const activeReservations = reservations.filter((reservation) =>
     ['reserved', 'pending_review'].includes(reservation.status),
-  );
-  const totalOwned = ownedProperties.reduce(
-    (sum, property) => sum + Number(property.successful_investment || 0),
-    0,
   );
 
   return (
@@ -66,18 +60,6 @@ export function DashboardContent() {
             You’re part of a private circle building ownership, dependable
             income, and generational wealth through real apartments.
           </p>
-          <div className='mt-7 flex flex-wrap gap-3'>
-            <Button asChild size='lg'>
-              <Link href={paths.listings.list}>
-                Explore apartments <ArrowRight className='ml-2 h-4 w-4' />
-              </Link>
-            </Button>
-            <Button asChild size='lg' variant='outline'>
-              <Link href={paths.dashboard.vault}>
-                <Vault className='mr-2 h-4 w-4' /> Vestafi Vault
-              </Link>
-            </Button>
-          </div>
         </div>
         <div className='relative min-h-[320px] overflow-hidden rounded-[2rem]'>
           <Image
@@ -101,35 +83,35 @@ export function DashboardContent() {
 
       <section>
         <div className='mb-4'>
-          <h2 className='text-2xl font-bold'>Today in your society</h2>
+          <h2 className='text-2xl font-bold'>Today in Vestafi Society</h2>
           <p className='text-muted-foreground'>
-            Your current ownership and society activity at a glance.
+            Real people. Real ownership. Real impact.
           </p>
         </div>
         <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
           <StatCard
-            icon={Building2}
-            value={String(ownedProperties.length)}
-            label='apartments owned'
-            detail='Across your active positions'
+            icon={Users}
+            value='57%'
+            label='male members'
+            detail='Building wealth together'
           />
           <StatCard
-            icon={TrendingUp}
-            value={formatCurrency(totalOwned)}
-            label='total ownership'
-            detail='Confirmed ownership value'
-          />
-          <StatCard
-            icon={CalendarClock}
-            value={String(activeReservations.length)}
-            label='active reservations'
-            detail='Seven-day ownership holds'
+            icon={Bell}
+            value='43%'
+            label='female members'
+            detail='Investing in their future'
           />
           <StatCard
             icon={Globe2}
             value='8'
             label='countries represented'
-            detail='A growing global society'
+            detail='A global society united'
+          />
+          <StatCard
+            icon={Building2}
+            value='87%'
+            label='apartment occupancy'
+            detail='Our apartments are performing'
           />
         </div>
       </section>
@@ -224,7 +206,7 @@ export function DashboardContent() {
           {[
             ['1', 'Browse apartments', 'Explore verified openings.'],
             ['2', 'Choose your path', 'Prime, Live, or Fractional.'],
-            ['3', 'Complete ownership', 'Use bank transfer or Vestafi Vault.'],
+            ['3', 'Complete ownership', 'Use bank transfer or Vestafi Wallet.'],
             ['4', 'Earn together', 'Receive rent distributions.'],
             ['5', 'We manage', 'Vestafi handles the property.'],
           ].map(([number, title, text]) => (

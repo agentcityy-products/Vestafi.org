@@ -166,7 +166,7 @@ export const createOwnershipCheckout = authActionClient
         .from('ownership_reservations')
         .delete()
         .eq('id', reservationId);
-      throw new Error('Your Vestafi Vault could not be loaded.');
+      throw new Error('Your Vestafi Wallet could not be loaded.');
     }
 
     if (Number(vault.balance) < checkout.totalDue) {
@@ -175,7 +175,7 @@ export const createOwnershipCheckout = authActionClient
         .delete()
         .eq('id', reservationId);
       throw new Error(
-        `Your Vestafi Vault needs ${formatCurrency(
+        `Your Vestafi Wallet needs ${formatCurrency(
           checkout.totalDue - Number(vault.balance),
         )} more to complete this ownership.`,
       );
@@ -231,7 +231,7 @@ export const createOwnershipCheckout = authActionClient
       await admin.from('investment').delete().eq('id', investmentId);
       await admin.from('vault_transactions').delete().eq('id', transactionId);
       throw new Error(
-        'Your Vestafi Vault balance changed. Please review it and try again.',
+        'Your Vestafi Wallet balance changed. Please review it and try again.',
       );
     }
 

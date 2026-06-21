@@ -18,8 +18,8 @@ export const paths = {
     submit: '/submit',
   },
   dashboard: {
-    root: '/listings',
-    savingsOverview: '/dashboard',
+    root: '/dashboard',
+    savingsOverview: '/dashboard/ownership',
     contributions: '/dashboard/contributions',
     withdrawals: '/dashboard/withdrawals',
     vault: '/dashboard/vault',

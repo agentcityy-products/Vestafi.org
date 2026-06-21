@@ -1,23 +1,21 @@
 'use client';
 
 import {
-  Building2,
+  ArrowRight,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
+  Crown,
+  Heart,
   Lock,
   MapPin,
-  Sparkles,
-  TrendingUp,
+  ShieldCheck,
   Users,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 import { cn } from '@/lib/utils';
@@ -33,35 +31,6 @@ interface PropertyCardProps {
   isAccessible?: boolean;
 }
 
-const categoryConfig: Record<
-  OpportunityType,
-  {
-    eyebrow: string;
-    label: string;
-    cta: string;
-    badgeClassName: string;
-  }
-> = {
-  prime: {
-    eyebrow: 'Private ownership opening',
-    label: 'Prime',
-    cta: 'Secure Ownership',
-    badgeClassName: 'border-white/40 bg-white/90 text-stone-900',
-  },
-  live: {
-    eyebrow: 'Ownership active',
-    label: 'Live',
-    cta: 'Join Ownership',
-    badgeClassName: 'border-emerald-200 bg-emerald-50/95 text-emerald-800',
-  },
-  fractional: {
-    eyebrow: 'Member ownership opening',
-    label: 'Fractional',
-    cta: 'Enter Ownership',
-    badgeClassName: 'border-sky-200 bg-sky-50/95 text-sky-800',
-  },
-};
-
 export function getOpportunityType(property: ListingsViewRow): OpportunityType {
   if (
     property.opportunity_type === 'prime' ||
@@ -70,217 +39,173 @@ export function getOpportunityType(property: ListingsViewRow): OpportunityType {
   ) {
     return property.opportunity_type;
   }
-
   if ((property.average_rent_6_months ?? 0) > 0) return 'live';
   if ((property.investment_percentage ?? 0) === 0) return 'prime';
   return 'fractional';
 }
 
-export const PropertyCard = ({
+const typeStyles = {
+  prime: {
+    icon: Crown,
+    label: 'VESTAFI PRIME',
+    secondary: 'FULL OWNERSHIP',
+    badge: 'bg-amber-50 text-amber-800 border-amber-200',
+    cta: 'Secure Ownership',
+  },
+  live: {
+    icon: CheckCircle2,
+    label: 'VESTAFI LIVE',
+    secondary: 'RENT ACTIVE',
+    badge: 'bg-emerald-900 text-white border-emerald-800',
+    cta: 'Join Ownership',
+  },
+  fractional: {
+    icon: Users,
+    label: 'VESTAFI FRACTIONAL',
+    secondary: 'MEMBER OWNERSHIP',
+    badge: 'bg-violet-50 text-violet-800 border-violet-200',
+    cta: 'Join Together',
+  },
+} as const;
+
+export function PropertyCard({
   property,
   isAccessible = true,
-}: PropertyCardProps) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
+}: PropertyCardProps) {
   if (!property.id) return null;
 
-  const images = property.images ?? [];
-  const mainImage =
-    images[currentImageIndex] ?? '/images/vestafi/apartment-placeholder.png';
-  const hasMultipleImages = images.length > 1;
-  const ownershipProgress = property.investment_percentage ?? 0;
-  const isFullyPositioned = ownershipProgress >= 100;
-  const averageRent = property.average_rent_6_months ?? 0;
-  const opportunityType = getOpportunityType(property);
-  const config = categoryConfig[opportunityType];
-
-  const address = [property.city, property.state, property.country]
+  const type = getOpportunityType(property);
+  const config = typeStyles[type];
+  const Icon = config.icon;
+  const image =
+    property.images?.[0] || '/images/vestafi/apartment-placeholder.png';
+  const progress = Number(property.investment_percentage || 0);
+  const rent = Number(
+    property.average_rent_6_months || property.minimum_monthly_rent || 0,
+  );
+  const annualYield =
+    Number(property.price) > 0 && rent > 0
+      ? (rent * 12 * 100) / Number(property.price)
+      : 17;
+  const location = [property.city, property.state, property.country]
     .filter(Boolean)
     .join(', ');
 
-  const changeImage = (direction: -1 | 1, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setCurrentImageIndex((current) => {
-      const next = current + direction;
-      if (next < 0) return images.length - 1;
-      if (next >= images.length) return 0;
-      return next;
-    });
-  };
-
   return (
-    <Card className='group overflow-hidden rounded-[1.5rem] border-stone-200/80 bg-white shadow-[0_18px_60px_-42px_rgba(28,25,23,0.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-38px_rgba(28,25,23,0.4)]'>
-      <div
-        className={cn(
-          'relative overflow-hidden',
-          opportunityType === 'prime' ? 'aspect-[5/4]' : 'aspect-[4/3]',
-        )}
-      >
+    <Card className='group relative overflow-hidden rounded-2xl border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl'>
+      <div className='relative aspect-[4/3] overflow-hidden'>
         <Image
-          src={mainImage}
+          src={image}
           alt={property.title || 'Vestafi apartment'}
           fill
-          className='object-cover transition-transform duration-700 group-hover:scale-[1.03]'
-          sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+          className='object-cover transition duration-500 group-hover:scale-[1.025]'
+          sizes='(max-width: 768px) 100vw, 33vw'
         />
-        <div className='absolute inset-0 bg-gradient-to-t from-stone-950/45 via-transparent to-stone-950/10' />
-
-        <Badge
-          variant='outline'
-          className={cn(
-            'absolute left-4 top-4 gap-1.5 rounded-full px-3 py-1 text-xs font-medium shadow-sm backdrop-blur',
-            config.badgeClassName,
-          )}
-        >
-          {opportunityType === 'prime' ? (
-            <Sparkles className='h-3 w-3' />
-          ) : opportunityType === 'live' ? (
-            <CheckCircle2 className='h-3 w-3' />
-          ) : (
-            <Users className='h-3 w-3' />
-          )}
-          {config.label}
-        </Badge>
-
-        {hasMultipleImages && (
-          <>
-            <button
-              type='button'
-              onClick={(event) => changeImage(-1, event)}
-              className='absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-stone-950/35 p-2 text-white opacity-0 backdrop-blur transition hover:bg-stone-950/55 group-hover:opacity-100'
-              aria-label='Previous apartment image'
-            >
-              <ChevronLeft className='h-4 w-4' />
-            </button>
-            <button
-              type='button'
-              onClick={(event) => changeImage(1, event)}
-              className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-stone-950/35 p-2 text-white opacity-0 backdrop-blur transition hover:bg-stone-950/55 group-hover:opacity-100'
-              aria-label='Next apartment image'
-            >
-              <ChevronRight className='h-4 w-4' />
-            </button>
-          </>
-        )}
-
-        <div className='absolute bottom-4 left-4 right-4'>
-          <p className='text-xs font-medium uppercase tracking-[0.18em] text-white/80'>
-            {config.eyebrow}
-          </p>
+        <div className='absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/10' />
+        <div className='absolute left-3 top-3 flex flex-wrap gap-2'>
+          <Badge className={cn('gap-1.5 border px-3 py-1.5', config.badge)}>
+            <Icon className='h-3.5 w-3.5' />
+            {config.label}
+          </Badge>
+          <Badge className='border-white/70 bg-white/90 px-3 py-1.5 text-emerald-900 hover:bg-white/90'>
+            {config.secondary}
+          </Badge>
         </div>
+        <button
+          type='button'
+          aria-label='Save apartment'
+          className='absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-stone-800 shadow'
+        >
+          <Heart className='h-5 w-5' />
+        </button>
+        <Badge className='absolute bottom-3 left-3 bg-emerald-900/95 px-3 py-1.5 text-white'>
+          <ShieldCheck className='mr-1.5 h-3.5 w-3.5' />
+          Managed by Vestafi
+        </Badge>
       </div>
 
-      <div className='relative'>
+      <CardContent className='relative space-y-5 p-5'>
         {!isAccessible && (
-          <div className='absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/80 px-8 text-center backdrop-blur-md'>
-            <div className='rounded-full border border-stone-200 bg-white p-3 shadow-sm'>
-              <Lock className='h-5 w-5 text-stone-600' />
+          <div className='absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 p-7 text-center backdrop-blur'>
+            <Lock className='h-7 w-7 text-primary' />
+            <p className='mt-3 font-semibold'>Member access required</p>
+            <p className='mt-1 text-sm text-muted-foreground'>
+              Hold {formatCurrency(businessConfig.minInvestmentAmount)} in
+              active ownership to access this opening.
+            </p>
+          </div>
+        )}
+
+        <div>
+          <h3 className='text-xl font-bold tracking-tight text-stone-950'>
+            {property.title}
+          </h3>
+          <p className='mt-1 flex items-center text-sm text-muted-foreground'>
+            <MapPin className='mr-1.5 h-4 w-4' />
+            {location}
+          </p>
+        </div>
+
+        {type === 'prime' && (
+          <div className='grid grid-cols-2 divide-x rounded-xl border p-4'>
+            <Metric
+              label='Full ownership price'
+              value={formatCurrency(property.price)}
+            />
+            <Metric
+              label='Estimated annual yield'
+              value={`${annualYield.toFixed(0)}%`}
+              className='pl-4'
+            />
+          </div>
+        )}
+
+        {type === 'live' && (
+          <div className='grid grid-cols-3 divide-x rounded-xl border p-4'>
+            <Metric label='Monthly rent' value={formatCurrency(rent)} />
+            <Metric label='Occupancy' value='100%' className='pl-3' />
+            <Metric label='Next distribution' value='4 Jul' className='pl-3' />
+          </div>
+        )}
+
+        {type === 'fractional' && (
+          <div className='space-y-3 rounded-xl border p-4'>
+            <div className='flex justify-between text-sm'>
+              <span className='text-muted-foreground'>Ownership funded</span>
+              <strong>{formatNumber(progress, 0)}%</strong>
             </div>
-            <div>
-              <h4 className='font-medium text-stone-900'>
-                Member access required
-              </h4>
-              <p className='mt-1 text-sm leading-5 text-stone-600'>
-                Hold at least{' '}
-                {formatCurrency(businessConfig.minInvestmentAmount)} in active
-                ownership to access this opening.
-              </p>
+            <Progress value={progress} className='h-2' />
+            <div className='flex justify-between text-sm'>
+              <span className='text-muted-foreground'>Starting from</span>
+              <strong>{formatCurrency(1_000_000)}</strong>
             </div>
           </div>
         )}
 
-        <div className={cn(!isAccessible && 'pointer-events-none select-none')}>
-          <CardContent
-            className={cn(
-              'space-y-5 p-6',
-              opportunityType === 'prime' && 'pb-5 pt-7',
-            )}
-          >
-            <div>
-              <h3 className='line-clamp-2 text-xl font-semibold tracking-[-0.02em] text-stone-950'>
-                {property.title || 'Untitled Apartment'}
-              </h3>
-              <div className='mt-2 flex items-center text-sm text-stone-500'>
-                <MapPin className='mr-1.5 h-3.5 w-3.5' />
-                <span className='line-clamp-1'>{address}</span>
-              </div>
-            </div>
-
-            {opportunityType === 'prime' && (
-              <div className='flex items-end justify-between border-t border-stone-100 pt-5'>
-                <div>
-                  <p className='text-xs uppercase tracking-[0.16em] text-stone-400'>
-                    Private acquisition
-                  </p>
-                  <p className='mt-1 text-lg font-semibold text-stone-900'>
-                    {formatCurrency(property.price)}
-                  </p>
-                </div>
-                <Building2 className='h-5 w-5 text-stone-300' />
-              </div>
-            )}
-
-            {opportunityType === 'live' && (
-              <>
-                <div className='grid grid-cols-2 gap-3'>
-                  <div className='rounded-xl bg-emerald-50/70 p-3'>
-                    <p className='text-xs text-emerald-700'>
-                      Distributions active
-                    </p>
-                    <p className='mt-1 text-sm font-semibold text-emerald-950'>
-                      {averageRent > 0
-                        ? `${formatCurrency(averageRent)}/mo`
-                        : 'Operational'}
-                    </p>
-                  </div>
-                  <div className='rounded-xl bg-stone-50 p-3'>
-                    <p className='text-xs text-stone-500'>
-                      Ownership positioned
-                    </p>
-                    <p className='mt-1 text-sm font-semibold text-stone-900'>
-                      {formatNumber(ownershipProgress, 0)}%
-                    </p>
-                  </div>
-                </div>
-                <p className='flex items-center gap-2 text-sm text-stone-600'>
-                  <TrendingUp className='h-4 w-4 text-emerald-600' />
-                  Members are currently earning from this apartment.
-                </p>
-              </>
-            )}
-
-            {opportunityType === 'fractional' && (
-              <div className='space-y-3'>
-                <div className='flex items-center justify-between text-sm'>
-                  <span className='text-stone-500'>Ownership progress</span>
-                  <span className='font-semibold text-stone-900'>
-                    {formatNumber(ownershipProgress, 0)}%
-                  </span>
-                </div>
-                <Progress value={ownershipProgress} className='h-1.5' />
-                <div className='flex items-center justify-between text-xs text-stone-500'>
-                  <span>Member participation</span>
-                  <span>
-                    {isFullyPositioned ? 'Positioned' : 'Opening active'}
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-
-          <CardFooter className='px-6 pb-6 pt-0'>
-            <Link href={paths.listings.detail(property.id)} className='w-full'>
-              <Button
-                className='h-11 w-full rounded-xl'
-                variant={isFullyPositioned ? 'secondary' : 'default'}
-              >
-                {isFullyPositioned ? 'View Ownership' : config.cta}
-              </Button>
-            </Link>
-          </CardFooter>
-        </div>
-      </div>
+        <Button asChild className='h-11 w-full'>
+          <Link href={paths.listings.detail(property.id)}>
+            {config.cta}
+            <ArrowRight className='ml-2 h-4 w-4' />
+          </Link>
+        </Button>
+      </CardContent>
     </Card>
   );
-};
+}
+
+function Metric({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className='text-[11px] leading-4 text-muted-foreground'>{label}</p>
+      <p className='mt-1 text-sm font-bold text-stone-950'>{value}</p>
+    </div>
+  );
+}

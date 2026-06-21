@@ -125,6 +125,7 @@ const adminRoutes = [
 
 const userRoutes = [
   paths.profile,
+  paths.dashboard.root,
   paths.dashboard.savingsOverview,
   paths.listings.list,
   paths.rentalProperties.submit,

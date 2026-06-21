@@ -195,20 +195,13 @@ const Sidebar = ({ userEmail, isAdmin }: SidebarProps) => {
   const [innerAccessModalOpen, setInnerAccessModalOpen] = useState(false);
 
   const userLinks: SidebarLink[] = [
-    // Always show "Upload Rental Property" button
-    // {
-    //   label: 'Upload Rental Property',
-    //   href: paths.rentalProperties.submit,
-    //   icon: Upload,
-    //   onClick: canSubmitRentalProperty
-    //     ? undefined
-    //     : (e: React.MouseEvent) => {
-    //         e.preventDefault();
-    //         setInnerAccessModalOpen(true);
-    //       },
-    // },
     {
-      label: 'Inside Opportunities',
+      label: 'Home',
+      href: paths.dashboard.root,
+      icon: Home,
+    },
+    {
+      label: 'Explore Properties',
       href: paths.listings.list,
       icon: Search,
     },
