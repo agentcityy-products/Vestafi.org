@@ -83,10 +83,21 @@ export function PropertyCard({
   const rent = Number(
     property.average_rent_6_months || property.minimum_monthly_rent || 0,
   );
-  const annualYield =
+  const calculatedYield =
     Number(property.price) > 0 && rent > 0
       ? (rent * 12 * 100) / Number(property.price)
       : 17;
+  const annualYield = property.annual_yield_min || calculatedYield;
+  const yieldLabel = property.annual_yield_max
+    ? `${Number(property.annual_yield_min || annualYield).toFixed(0)}% – ${Number(property.annual_yield_max).toFixed(0)}%`
+    : `${Number(annualYield).toFixed(0)}%`;
+  const occupancy = property.occupancy_percentage ?? 100;
+  const nextDistribution = property.next_distribution_at
+    ? new Date(property.next_distribution_at).toLocaleDateString('en-UG', {
+        day: 'numeric',
+        month: 'short',
+      })
+    : 'Soon';
   const location = [property.city, property.state, property.country]
     .filter(Boolean)
     .join(', ');
@@ -108,7 +119,9 @@ export function PropertyCard({
             {config.label}
           </Badge>
           <Badge className='border-white/70 bg-white/90 px-3 py-1.5 text-emerald-900 hover:bg-white/90'>
-            {config.secondary}
+            {property.is_reserved && type === 'prime'
+              ? 'RESERVED'
+              : config.secondary}
           </Badge>
         </div>
         <button
@@ -154,7 +167,7 @@ export function PropertyCard({
             />
             <Metric
               label='Estimated annual yield'
-              value={`${annualYield.toFixed(0)}%`}
+              value={yieldLabel}
               className='pl-4'
             />
           </div>
@@ -163,8 +176,16 @@ export function PropertyCard({
         {type === 'live' && (
           <div className='grid grid-cols-3 divide-x rounded-xl border p-4'>
             <Metric label='Monthly rent' value={formatCurrency(rent)} />
-            <Metric label='Occupancy' value='100%' className='pl-3' />
-            <Metric label='Next distribution' value='4 Jul' className='pl-3' />
+            <Metric
+              label='Occupancy'
+              value={`${occupancy}%`}
+              className='pl-3'
+            />
+            <Metric
+              label='Next distribution'
+              value={nextDistribution}
+              className='pl-3'
+            />
           </div>
         )}
 
@@ -177,7 +198,11 @@ export function PropertyCard({
             <Progress value={progress} className='h-2' />
             <div className='flex justify-between text-sm'>
               <span className='text-muted-foreground'>Starting from</span>
-              <strong>{formatCurrency(1_000_000)}</strong>
+              <strong>
+                {formatCurrency(
+                  property.starting_ownership_amount || 1_000_000,
+                )}
+              </strong>
             </div>
           </div>
         )}

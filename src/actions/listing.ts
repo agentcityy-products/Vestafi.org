@@ -15,7 +15,8 @@ export const getListings = authActionClient
     // Build the base query for filtering - filter by investment properties only
     let baseQuery = supabase
       .from('listings_view')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' })
+      .not('published_at', 'is', null);
 
     // Filter to only show investment properties (not rental)
     // Since listings_view doesn't have property_type, we need to join with property table
@@ -90,6 +91,7 @@ export const getListingById = authActionClient
       .from('listings_view')
       .select('*')
       .eq('id', parsedInput.id)
+      .not('published_at', 'is', null)
       .single();
 
     if (error) throw new Error(error.message);

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table/column-header';
 import {
   DropdownMenu,
@@ -74,6 +75,49 @@ export const createAdminPropertyColumns = ({
       );
     },
     size: 300,
+  },
+  {
+    accessorKey: 'opportunity_type',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Category' />
+    ),
+    cell: ({ row }) => {
+      const type = String(row.original.opportunity_type || 'fractional');
+      const label =
+        type === 'prime' ? 'Prime' : type === 'live' ? 'Live' : 'Fractional';
+      return (
+        <div className='text-center'>
+          <Badge variant='secondary'>{label}</Badge>
+        </div>
+      );
+    },
+    size: 120,
+  },
+  {
+    accessorKey: 'apartment_status',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Status' />
+    ),
+    cell: ({ row }) => (
+      <div className='text-center text-sm font-medium capitalize'>
+        {String(row.original.apartment_status || 'draft').replace('-', ' ')}
+      </div>
+    ),
+    size: 140,
+  },
+  {
+    accessorKey: 'published_at',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Published' />
+    ),
+    cell: ({ row }) => (
+      <div className='text-center'>
+        <Badge variant={row.original.published_at ? 'default' : 'outline'}>
+          {row.original.published_at ? 'Published' : 'Draft'}
+        </Badge>
+      </div>
+    ),
+    size: 120,
   },
   {
     accessorKey: 'price',

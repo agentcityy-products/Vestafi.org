@@ -1,6 +1,7 @@
 'use server';
 
 import {
+  createOwnershipContactRequestSchema,
   createOwnershipCheckoutSchema,
   getMyOwnershipReservationsSchema,
 } from '@/schema/ownership';
@@ -11,6 +12,62 @@ import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency } from '@/utils/number-functions';
 
 type SupportedOwnershipType = 'prime' | 'live';
+
+export const createOwnershipContactRequest = authActionClient
+  .schema(createOwnershipContactRequestSchema)
+  .action(async ({ ctx, parsedInput }) => {
+    const { authUser } = ctx;
+    const admin = await createSupabaseAdminClient();
+
+    const { data: property, error } = await admin
+      .from('listings_view')
+      .select('id, title, opportunity_type, is_reserved, published_at')
+      .eq('id', parsedInput.propertyId)
+      .not('published_at', 'is', null)
+      .single();
+
+    if (error || !property) {
+      throw new Error(error?.message || 'Apartment opening not found.');
+    }
+
+    if (property.opportunity_type !== 'prime') {
+      throw new Error(
+        'Contact reservations are currently for Prime apartments.',
+      );
+    }
+
+    if (property.is_reserved) {
+      throw new Error('This Prime apartment is already reserved.');
+    }
+
+    const expiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const { data, error: insertError } = await admin
+      .from('ownership_contact_requests')
+      .insert({
+        user_id: authUser.user.id,
+        property_id: parsedInput.propertyId,
+        opportunity_type: 'prime',
+        request_type: 'prime-reservation',
+        status: 'reserved',
+        note:
+          parsedInput.note ||
+          'Member requested a Prime ownership handoff from the marketplace.',
+        expires_at: expiresAt,
+      })
+      .select('id, expires_at')
+      .single();
+
+    if (insertError) throw new Error(insertError.message);
+
+    return {
+      requestId: data.id,
+      expiresAt: data.expires_at,
+      propertyTitle: property.title,
+    };
+  });
 
 function calculateCheckout(
   ownershipType: SupportedOwnershipType,

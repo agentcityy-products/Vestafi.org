@@ -13,4 +13,9 @@ export const getMyOwnershipReservationsSchema = z.object({
   propertyId: z.string().uuid().optional(),
 });
 
+export const createOwnershipContactRequestSchema = z.object({
+  propertyId: z.string().uuid(),
+  note: z.string().max(1000).optional(),
+});
+
 export type OwnershipPaymentMethod = (typeof ownershipPaymentMethods)[number];

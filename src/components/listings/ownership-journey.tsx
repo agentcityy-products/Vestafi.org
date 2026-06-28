@@ -27,7 +27,10 @@ import { toast } from 'sonner';
 import { useLoggedInUser } from '@/hooks/queries/profile';
 import { useVaultBalance } from '@/hooks/queries/vault';
 
-import { createOwnershipCheckout } from '@/actions/ownership';
+import {
+  createOwnershipCheckout,
+  createOwnershipContactRequest,
+} from '@/actions/ownership';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -69,6 +72,12 @@ type CheckoutResult = {
   };
 };
 
+type ContactResult = {
+  requestId: string;
+  expiresAt: string;
+  propertyTitle: string | null;
+};
+
 export function OwnershipJourney({
   initialProperty: property,
 }: {
@@ -78,7 +87,7 @@ export function OwnershipJourney({
   const ownershipType =
     property.opportunity_type === 'prime' ? 'prime' : 'live';
   const isPrime = ownershipType === 'prime';
-  const price = Number(property.price || 0);
+  const price = Number(property.listed_value || property.price || 0);
   const available = Math.max(
     0,
     Number(
@@ -86,7 +95,10 @@ export function OwnershipJourney({
         price - Number(property.total_investment || 0),
     ),
   );
-  const liveMinimum = Math.min(LIVE_MINIMUM, available);
+  const liveMinimum = Math.min(
+    Number(property.starting_ownership_amount || LIVE_MINIMUM),
+    available,
+  );
   const [step, setStep] = useState<JourneyStep>('details');
   const [amount, setAmount] = useState(isPrime ? price : liveMinimum);
   const [paymentMethod, setPaymentMethod] =
@@ -94,6 +106,9 @@ export function OwnershipJourney({
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [result, setResult] = useState<CheckoutResult | null>(null);
+  const [contactResult, setContactResult] = useState<ContactResult | null>(
+    null,
+  );
 
   const { data: user } = useLoggedInUser();
   const { data: vault, isLoading: vaultLoading } = useVaultBalance();
@@ -107,18 +122,22 @@ export function OwnershipJourney({
     property.average_rent_6_months || property.minimum_monthly_rent || 0,
   );
   const monthlyDistribution = monthlyRent * (ownershipPercentage / 100);
-  const annualYield =
+  const calculatedAnnualYield =
     price > 0 && monthlyRent > 0 ? (monthlyRent * 12 * 100) / price : 17;
+  const annualYield = Number(
+    property.annual_yield_min || calculatedAnnualYield,
+  );
+  const annualYieldLabel = property.annual_yield_max
+    ? `${annualYield.toFixed(0)}% – ${Number(property.annual_yield_max).toFixed(0)}%`
+    : `${annualYield.toFixed(1)}%`;
 
   const steps = useMemo(
     () =>
       isPrime
         ? [
             ['details', 'Property'],
-            ['ownership', 'Price'],
-            ['summary', 'Summary'],
-            ['payment', 'Payment'],
-            ['confirmed', 'Confirmed'],
+            ['ownership', 'Handoff'],
+            ['confirmed', 'Reserved'],
           ]
         : [
             ['details', 'Property'],
@@ -143,6 +162,15 @@ export function OwnershipJourney({
     },
   });
 
+  const contactAction = useAction(createOwnershipContactRequest, {
+    onError,
+    onSuccess: ({ data }) => {
+      setContactResult(data as ContactResult);
+      setStep('confirmed');
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.LISTINGS] });
+    },
+  });
+
   const onDrop = useCallback((files: File[]) => {
     setProofFiles((current) => [...current, ...files].slice(0, 5));
   }, []);
@@ -158,7 +186,9 @@ export function OwnershipJourney({
   const submitCheckout = async () => {
     if (!property.id || !user) return;
     if (paymentMethod === 'vault' && vaultBalance < totalDue) {
-      toast.error('Your Vestafi Wallet balance is not enough for this payment.');
+      toast.error(
+        'Your Vestafi Wallet balance is not enough for this payment.',
+      );
       return;
     }
     if (paymentMethod === 'bank_transfer' && proofFiles.length === 0) {
@@ -192,6 +222,60 @@ export function OwnershipJourney({
   const location = [property.city, property.state, property.country]
     .filter(Boolean)
     .join(', ');
+
+  if (step === 'confirmed' && isPrime && contactResult) {
+    return (
+      <div className='mx-auto max-w-3xl py-8'>
+        <Card className='overflow-hidden border-primary/20 shadow-xl'>
+          <div className='bg-gradient-to-br from-emerald-950 via-primary to-emerald-700 px-6 py-12 text-center text-white'>
+            <div className='mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white text-primary shadow-lg'>
+              <CheckCircle2 className='h-11 w-11' />
+            </div>
+            <p className='text-sm font-semibold uppercase tracking-[0.22em] text-emerald-100'>
+              Prime handoff requested
+            </p>
+            <h1 className='mt-2 text-3xl font-bold md:text-4xl'>
+              Your seven-day Prime reservation is active.
+            </h1>
+          </div>
+          <CardContent className='space-y-6 p-6 md:p-9'>
+            <div className='rounded-2xl border bg-muted/30 p-5'>
+              <p className='font-semibold'>{contactResult.propertyTitle}</p>
+              <p className='mt-3 text-sm text-muted-foreground'>
+                Vestafi has received your request. A real person will contact
+                you to confirm the ownership process, legal structure, and next
+                steps.
+              </p>
+            </div>
+            <div className='flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950'>
+              <CalendarClock className='mt-0.5 h-5 w-5 flex-none' />
+              <p className='text-sm'>
+                This apartment is reserved in your name until{' '}
+                <strong>
+                  {new Date(contactResult.expiresAt).toLocaleString('en-UG', {
+                    dateStyle: 'long',
+                    timeStyle: 'short',
+                  })}
+                </strong>
+                . If the process is not completed, the apartment becomes
+                available again.
+              </p>
+            </div>
+            <div className='grid gap-3 sm:grid-cols-2'>
+              <Button asChild size='lg'>
+                <Link href={paths.dashboard.savingsOverview}>
+                  View My Ownership <ArrowRight className='ml-2 h-4 w-4' />
+                </Link>
+              </Button>
+              <Button asChild size='lg' variant='outline'>
+                <Link href={paths.listings.list}>Explore more apartments</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (step === 'confirmed' && result) {
     return (
@@ -354,7 +438,7 @@ export function OwnershipJourney({
                   Projected annual yield
                 </p>
                 <p className='mt-3 text-4xl font-semibold'>
-                  {annualYield.toFixed(1)}%
+                  {annualYieldLabel}
                 </p>
                 <p className='mt-3 text-sm text-emerald-100'>
                   Estimated rental yield per year
@@ -420,6 +504,11 @@ export function OwnershipJourney({
                   </p>
                 ))}
               </div>
+              <p className='rounded-xl bg-emerald-50 p-4 text-sm text-emerald-950'>
+                Prime ownership is concierge-led. When you continue, Vestafi
+                reserves this apartment for seven days and contacts you to
+                complete the ownership handoff.
+              </p>
             </div>
           ) : (
             <div className='space-y-7'>
@@ -456,13 +545,35 @@ export function OwnershipJourney({
               </p>
             </div>
           )}
-          <Button
-            size='lg'
-            className='mt-7 w-full'
-            onClick={() => setStep('summary')}
-          >
-            Continue to Summary <ArrowRight className='ml-2 h-4 w-4' />
-          </Button>
+          {isPrime ? (
+            <Button
+              size='lg'
+              className='mt-7 w-full'
+              disabled={contactAction.isExecuting}
+              onClick={() => {
+                if (!property.id) return;
+                contactAction.execute({
+                  propertyId: property.id,
+                  note: 'Member requested Prime ownership handoff from the property detail page.',
+                });
+              }}
+            >
+              {contactAction.isExecuting
+                ? 'Reserving apartment...'
+                : 'Reserve & Request Handoff'}
+              {!contactAction.isExecuting && (
+                <ArrowRight className='ml-2 h-4 w-4' />
+              )}
+            </Button>
+          ) : (
+            <Button
+              size='lg'
+              className='mt-7 w-full'
+              onClick={() => setStep('summary')}
+            >
+              Continue to Summary <ArrowRight className='ml-2 h-4 w-4' />
+            </Button>
+          )}
         </JourneyCard>
       )}
 
@@ -496,7 +607,7 @@ export function OwnershipJourney({
             <PriceRow label='Total due' value={totalDue} strong />
             <PriceRow
               label='Estimated annual yield'
-              textValue={`${annualYield.toFixed(1)}%`}
+              textValue={annualYieldLabel}
             />
           </div>
           <label className='mt-6 flex cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm'>
@@ -612,8 +723,8 @@ export function OwnershipJourney({
               />
               {vaultBalance < totalDue && (
                 <p className='mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700'>
-                  Add {formatCurrency(totalDue - vaultBalance)} to Vestafi Wallet
-                  before continuing.
+                  Add {formatCurrency(totalDue - vaultBalance)} to Vestafi
+                  Wallet before continuing.
                 </p>
               )}
             </div>

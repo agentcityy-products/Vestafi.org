@@ -10,9 +10,7 @@ import {
   applicationFormSchema,
   type ApplicationFormValues,
 } from '@/schema/applications';
-import {
-  submitApplication,
-} from '@/actions/applications';
+import { submitApplication } from '@/actions/applications';
 
 import { Form } from '@/components/ui/form';
 
@@ -60,6 +58,7 @@ export const ApplicationForm = ({
       contribution_capacity: '',
       contribution_frequency: '',
       goals: [],
+      preferred_ownership_path: '',
       investment_timeline: '',
       webinar_willing: undefined,
       joining_as: '',
@@ -116,14 +115,17 @@ export const ApplicationForm = ({
     {
       onSuccess: ({ data }) => {
         console.log('Submission success data:', data); // Debug log
-        if (data?.rejected) {
+        const submission = data as
+          | { rejected?: boolean; category?: string | number }
+          | undefined;
+        if (submission?.rejected) {
           setCurrentStep('rejected');
         } else {
           // Ensure category is a number
-          const category = data?.category
-            ? typeof data.category === 'string'
-              ? parseInt(data.category, 10)
-              : data.category
+          const category = submission?.category
+            ? typeof submission.category === 'string'
+              ? parseInt(submission.category, 10)
+              : submission.category
             : undefined;
           console.log('Setting category:', category); // Debug log
           setSubmittedCategory(category);
@@ -194,10 +196,13 @@ export const ApplicationForm = ({
       case 'goals-mindset':
         // Validate goals & mindset
         isValid =
-          !!currentValues.goals?.length && !!currentValues.investment_timeline;
+          !!currentValues.goals?.length &&
+          !!currentValues.preferred_ownership_path &&
+          !!currentValues.investment_timeline;
         if (isValid) {
           handleSectionComplete('behavior-trust', {
             goals: currentValues.goals,
+            preferred_ownership_path: currentValues.preferred_ownership_path,
             investment_timeline: currentValues.investment_timeline,
           });
           return;
@@ -248,6 +253,7 @@ export const ApplicationForm = ({
         contribution_frequency:
           formData.contribution_frequency || 'monthly-consistency',
         goals: ['rental-income'], // Default value to pass validation
+        preferred_ownership_path: 'fractional',
         investment_timeline: '6-months', // Default value
         webinar_willing: false, // Default value
         joining_as: 'individual', // Default value

@@ -51,6 +51,7 @@ const EmailsPreviewPage = () => {
               contribution_capacity: '1000000',
               contribution_frequency: 'monthly',
               goals: ['investment', 'passive_income'],
+              preferred_ownership_path: 'prime',
               investment_timeline: '10 years',
               joining_as: 'individual',
               referral_source: 'friend',

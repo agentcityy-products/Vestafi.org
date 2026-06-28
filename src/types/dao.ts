@@ -45,6 +45,10 @@ export type VaultTransactionRow =
   Database['public']['Tables']['vault_transactions']['Row'];
 export type OwnershipReservationRow =
   Database['public']['Tables']['ownership_reservations']['Row'];
+export type OwnershipContactRequestRow =
+  Database['public']['Tables']['ownership_contact_requests']['Row'];
+export type MemberAlertRow =
+  Database['public']['Tables']['member_alerts']['Row'];
 
 // * Insert types
 export type BankInfoInsert =
@@ -66,6 +70,10 @@ export type VaultTransactionInsert =
   Database['public']['Tables']['vault_transactions']['Insert'];
 export type OwnershipReservationInsert =
   Database['public']['Tables']['ownership_reservations']['Insert'];
+export type OwnershipContactRequestInsert =
+  Database['public']['Tables']['ownership_contact_requests']['Insert'];
+export type MemberAlertInsert =
+  Database['public']['Tables']['member_alerts']['Insert'];
 export type MembershipActivationInsert =
   Database['public']['Tables']['membership_activations']['Insert'];
 
@@ -89,6 +97,10 @@ export type VaultTransactionUpdate =
   Database['public']['Tables']['vault_transactions']['Update'];
 export type OwnershipReservationUpdate =
   Database['public']['Tables']['ownership_reservations']['Update'];
+export type OwnershipContactRequestUpdate =
+  Database['public']['Tables']['ownership_contact_requests']['Update'];
+export type MemberAlertUpdate =
+  Database['public']['Tables']['member_alerts']['Update'];
 
 // * View types
 export type VaultViewRow = Database['public']['Views']['vault_view']['Row'];

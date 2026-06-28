@@ -72,6 +72,17 @@ async function createReferralRecord(
   }
 }
 
+async function getMarketplaceAutoApprovalMode() {
+  const supabase = await createSupabaseAdminClient();
+  const { data } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'marketplace_auto_approval_mode')
+    .maybeSingle();
+
+  return typeof data?.value === 'string' ? data.value : 'prime-only';
+}
+
 export const submitApplication = safeActionClient
   .schema(applicationFormSchema)
   .action(async ({ parsedInput }) => {
@@ -80,6 +91,12 @@ export const submitApplication = safeActionClient
 
     // Determine category based on contribution capacity
     const category = determineCategory(parsedInput.contribution_capacity);
+    const autoApprovalMode = await getMarketplaceAutoApprovalMode();
+    const shouldAutoApprove =
+      category !== 1 &&
+      (autoApprovalMode === 'all' ||
+        (autoApprovalMode === 'prime-only' &&
+          parsedInput.preferred_ownership_path === 'prime'));
 
     // Prepare application data
     // Use country directly (full country name)
@@ -89,7 +106,12 @@ export const submitApplication = safeActionClient
       savings: parsedInput.savings || '', // Required in DB
       why_vestafi: parsedInput.why_vestafi || [], // Required in DB
       category,
-      status: category === 1 ? ('rejected' as const) : ('pending' as const),
+      status:
+        category === 1
+          ? ('rejected' as const)
+          : shouldAutoApprove
+            ? ('approved' as const)
+            : ('pending' as const),
     };
 
     // Public submissions are insert-only. Never let possession of an email
@@ -147,7 +169,7 @@ The ${appConfig.title} Team`,
     }
 
     // Handle Category 3 (Elite Circle - $3,500+)
-    if (category === 3) {
+    if (category === 3 && !shouldAutoApprove) {
       // Send call scheduling email to user
       await resend.emails.send({
         from: `VESTAFI HQ <${appConfig.emails.sender}>`,
@@ -212,6 +234,83 @@ Please follow up with this candidate to schedule an onboarding call.`,
         success: true,
         category: 3,
         message: 'Application submitted - Elite Circle candidate',
+      };
+    }
+
+    if (shouldAutoApprove) {
+      const { error: createUserError } = await supabase.auth.admin.createUser({
+        email: parsedInput.email,
+        email_confirm: true,
+        user_metadata: {
+          full_name: parsedInput.full_name,
+          preferred_ownership_path: parsedInput.preferred_ownership_path,
+        },
+      });
+
+      if (
+        createUserError &&
+        !createUserError.message.toLowerCase().includes('already')
+      ) {
+        throw new Error(createUserError.message);
+      }
+
+      await resend.emails.send({
+        from: `VESTAFI HQ <${appConfig.emails.sender}>`,
+        to: parsedInput.email,
+        subject: `Welcome to ${appConfig.title} - Your Application is Approved!`,
+        react: ApplicantInviteEmail({
+          logoUrl: `${appConfig.appUrl}${appConfig.logo}`,
+          supportEmail: appConfig.emails.support,
+          companyName: appConfig.title,
+          recipientName: parsedInput.full_name,
+          loginUrl: `${appConfig.appUrl}${paths.auth.login}`,
+        }),
+        text: `Welcome to ${appConfig.title} - Your Application is Approved!
+
+Your application has been approved. You can now login and enter the Vestafi apartment marketplace.
+
+Login URL: ${appConfig.appUrl}${paths.auth.login}
+
+Best regards,
+The ${appConfig.title} Team`,
+      });
+
+      await resend.emails.send({
+        from: `VESTAFI HQ <${appConfig.emails.sender}>`,
+        to: appConfig.emails.admin,
+        subject: 'Prime Applicant Auto-Approved',
+        react: AdminApplicationNotification({
+          logoUrl: `${appConfig.appUrl}${appConfig.logo}`,
+          companyName: appConfig.title,
+          applicationData: parsedInput,
+          submittedAt: formatTimestamp(new Date()),
+        }),
+        text: `Prime Applicant Auto-Approved
+
+Applicant Details:
+- Name: ${parsedInput.full_name}
+- Email: ${parsedInput.email}
+- Phone: ${parsedInput.phone}
+- Preferred Path: ${parsedInput.preferred_ownership_path}
+- Category: ${category || 'Not determined'}
+
+The applicant was auto-approved based on the current marketplace setting.`,
+      });
+
+      if (category && category >= 2 && parsedInput.referred_by) {
+        await createReferralRecord(
+          applicationId,
+          parsedInput.email,
+          parsedInput.referred_by,
+          category,
+        );
+      }
+
+      return {
+        success: true,
+        category: category || 2,
+        approved: true,
+        message: 'Application approved automatically',
       };
     }
 

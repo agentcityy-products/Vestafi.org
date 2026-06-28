@@ -51,6 +51,7 @@ export const paths = {
       list: '/admin/rental-properties',
     },
     pendingInvestments: '/admin/pending-investments',
+    ownershipRequests: '/admin/ownership-requests',
     withdrawalRequests: '/admin/withdrawal-requests',
     vault: '/admin/vault',
     memberships: '/admin/memberships',

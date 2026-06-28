@@ -56,6 +56,30 @@ export const goalsOptions = [
   { value: 'financial-circle', label: 'Belong to a powerful financial circle' },
 ] as const;
 
+export const ownershipPathOptions = [
+  {
+    value: 'prime',
+    label: 'Buy an entire apartment',
+    description: 'I am interested in Vestafi Prime full apartment ownership.',
+  },
+  {
+    value: 'live',
+    label: 'Own into an apartment already earning rent',
+    description: 'I am interested in Vestafi Live operational apartments.',
+  },
+  {
+    value: 'fractional',
+    label: 'Join others to acquire an apartment together',
+    description:
+      'I am interested in Vestafi Fractional collaborative ownership.',
+  },
+  {
+    value: 'not-sure',
+    label: 'I am not sure yet',
+    description: 'I want Vestafi to guide me toward the best path.',
+  },
+] as const;
+
 // Investment timeline options
 export const investmentTimelineOptions = [
   { value: '6-months', label: '6 months' },
@@ -149,14 +173,14 @@ export function determineCategory(
 
   // Category 1: Below 1M UGX (rejected)
   if (contributionCapacity === 'below-1m') return 1;
-  
+
   // Category 2: 1M - 11.5M UGX (regular members)
   if (
     contributionCapacity === '1.5m-3.5m' ||
     contributionCapacity === '3.5m-11.5m'
   )
     return 2;
-  
+
   // Category 3: Above 11.5M UGX (Elite Circle)
   if (
     contributionCapacity === '11.5m-33m' ||
@@ -195,6 +219,9 @@ export const applicationFormSchema = z.object({
 
   // Section 3: Goals & Mindset
   goals: z.array(z.string()).min(1, 'Please select at least one goal'),
+  preferred_ownership_path: z
+    .string()
+    .min(1, 'Please select your preferred ownership path'),
   investment_timeline: z
     .string()
     .min(1, 'Please select your investment timeline'),

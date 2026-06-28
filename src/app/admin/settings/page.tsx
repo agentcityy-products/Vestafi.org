@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 
 import { ExitWindowSettingsContent } from '@/components/admin/settings/exit-window-settings-content';
+import { MarketplaceSettingsContent } from '@/components/admin/settings/marketplace-settings-content';
 import { MembershipSettingsContent } from '@/components/admin/settings/membership-settings-content';
 
 export const metadata: Metadata = {
@@ -21,8 +22,9 @@ export default function AdminSettingsPage() {
 
       <MembershipSettingsContent />
 
+      <MarketplaceSettingsContent />
+
       <ExitWindowSettingsContent />
     </div>
   );
 }
-

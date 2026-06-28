@@ -70,7 +70,27 @@ export const upsertProperty = adminActionClient
   .schema(propertyFormSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { supabase } = ctx;
-    const { data, error } = await supabase.from('property').upsert(parsedInput);
+    const { is_published, ...propertyInput } = parsedInput;
+    const published_at = is_published
+      ? propertyInput.published_at || new Date().toISOString()
+      : null;
+    const listed_value =
+      propertyInput.listed_value ||
+      propertyInput.acquisition_cost +
+        propertyInput.furnishing_cost +
+        propertyInput.legal_setup_cost +
+        propertyInput.operational_setup_cost +
+        propertyInput.markup_amount ||
+      propertyInput.price;
+
+    const { data, error } = await supabase.from('property').upsert({
+      ...propertyInput,
+      published_at,
+      listed_value,
+      price: listed_value,
+      status: 'approved',
+      property_type: 'investment',
+    });
     if (error) throw new Error(error.message);
     return data;
   });

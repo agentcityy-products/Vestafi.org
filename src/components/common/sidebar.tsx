@@ -440,6 +440,11 @@ const adminLinks: SidebarLink[] = [
     icon: DollarSign,
   },
   {
+    label: 'Ownership Requests',
+    href: paths.admin.ownershipRequests,
+    icon: Key,
+  },
+  {
     label: 'Exit Windows',
     href: paths.admin.exitWindows,
     icon: DoorOpen,

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAction } from 'next-safe-action/hooks';
+import type { Resolver } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -13,6 +14,7 @@ import { upsertProperty } from '@/actions/properties';
 import { BasicInfoForm } from '@/components/properties/form/basic-info-form';
 import { ImagesForm } from '@/components/properties/form/images-form';
 import { LocationForm } from '@/components/properties/form/location-form';
+import { MarketplaceControlsForm } from '@/components/properties/form/marketplace-controls-form';
 import { PricingForm } from '@/components/properties/form/pricing-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,7 +53,7 @@ export function PropertyForm({ property, id }: PropertyFormProps) {
   });
 
   const form = useForm<PropertyFormValues>({
-    resolver: zodResolver(propertyFormSchema),
+    resolver: zodResolver(propertyFormSchema) as Resolver<PropertyFormValues>,
     defaultValues: property
       ? {
           id: property.id,
@@ -74,11 +76,48 @@ export function PropertyForm({ property, id }: PropertyFormProps) {
             property.opportunity_type === 'fractional'
               ? property.opportunity_type
               : 'fractional',
+          apartment_status:
+            (property.apartment_status as PropertyFormValues['apartment_status']) ||
+            'draft',
+          is_published: Boolean(property.published_at),
+          published_at: property.published_at,
+          acquisition_cost: property.acquisition_cost || 0,
+          furnishing_cost: property.furnishing_cost || 0,
+          legal_setup_cost: property.legal_setup_cost || 0,
+          operational_setup_cost: property.operational_setup_cost || 0,
+          markup_amount: property.markup_amount || 0,
+          markup_percentage: property.markup_percentage || 0,
+          listed_value: property.listed_value || property.price,
+          annual_yield_min: property.annual_yield_min ?? 16,
+          annual_yield_max: property.annual_yield_max ?? 19,
+          starting_ownership_amount:
+            property.starting_ownership_amount ?? 1000000,
+          occupancy_percentage: property.occupancy_percentage ?? undefined,
+          earnings_active_since: property.earnings_active_since ?? undefined,
+          last_distribution_at: property.last_distribution_at ?? undefined,
+          next_distribution_at: property.next_distribution_at ?? undefined,
+          apartment_features: property.apartment_features || [],
+          prime_highlights: property.prime_highlights || [],
+          managed_by_vestafi: property.managed_by_vestafi ?? true,
         }
       : {
           opportunity_type: 'fractional',
+          apartment_status: 'draft',
+          is_published: false,
           allow_first_time_investors: false,
           images: [],
+          acquisition_cost: 0,
+          furnishing_cost: 0,
+          legal_setup_cost: 0,
+          operational_setup_cost: 0,
+          markup_amount: 0,
+          markup_percentage: 0,
+          annual_yield_min: 16,
+          annual_yield_max: 19,
+          starting_ownership_amount: 1000000,
+          apartment_features: [],
+          prime_highlights: [],
+          managed_by_vestafi: true,
         },
   });
 
@@ -107,6 +146,7 @@ export function PropertyForm({ property, id }: PropertyFormProps) {
           <CardContent className='space-y-6'>
             <BasicInfoForm />
             <PricingForm />
+            <MarketplaceControlsForm />
             <LocationForm />
             <ImagesForm />
           </CardContent>

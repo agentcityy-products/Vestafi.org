@@ -4,7 +4,11 @@ import { ArrowRight, Heart } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 
 import type { ApplicationFormValues } from '@/schema/applications';
-import { goalsOptions, investmentTimelineOptions } from '@/schema/applications';
+import {
+  goalsOptions,
+  investmentTimelineOptions,
+  ownershipPathOptions,
+} from '@/schema/applications';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -133,6 +137,40 @@ export const GoalsMindsetStep = ({ onNext }: GoalsMindsetStepProps) => {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name='preferred_ownership_path'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Which apartment ownership path are you most interested in?
+              </FormLabel>
+              <div className='grid gap-3 sm:grid-cols-2'>
+                {ownershipPathOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type='button'
+                    onClick={() => field.onChange(option.value)}
+                    className={`rounded-xl border p-4 text-left transition-all hover:border-emerald-300 hover:bg-emerald-50 ${
+                      field.value === option.value
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-slate-200 bg-white'
+                    }`}
+                  >
+                    <p className='font-semibold text-slate-900'>
+                      {option.label}
+                    </p>
+                    <p className='mt-1 text-sm text-slate-600'>
+                      {option.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className='pt-4'>
           <Button
             type='button'
@@ -140,7 +178,9 @@ export const GoalsMindsetStep = ({ onNext }: GoalsMindsetStepProps) => {
             size='lg'
             className='w-full'
             disabled={
-              !form.watch('goals')?.length || !form.watch('investment_timeline')
+              !form.watch('goals')?.length ||
+              !form.watch('preferred_ownership_path') ||
+              !form.watch('investment_timeline')
             }
             icon={ArrowRight}
           >
